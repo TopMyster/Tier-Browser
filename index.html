@@ -1,349 +1,98 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tier Browser</title>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      font-family: sans-serif;
-    }
-
-    iframe {
-      flex-grow: 1;
-      width: 100%;
-      border: none;
-    }
-
-    #bottom-bar {
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    #controls {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    #tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      flex-grow: 1;
-      padding-left: 20px;
-    }
-
-    .tab {
-      background: #ffffff;
-      border: none;
-      border-radius: 7px;
-      padding: 5px 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      color: black;
-    }
-
-    .tab.active {
-      background: #ffffffac;
-    }
-
-    .tab .close-btn {
-      margin-left: 8px;
-      background: none;
-      border: none;
-      color: rgb(0, 0, 0);
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    #center-search {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      width: 30%;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      display: none;
-      z-index: 1000;
-      border-radius: 10px;
-      text-align: center;
-    }
-
-    #overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      z-index: 999;
-    }
-
-    #controls img {
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
-    }
-
-    #settings-menu {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      display: none;
-      z-index: 1100;
-      text-align: center;
-    }
-
-    /* Dark mode styles */
-    .dark #settings-menu {
-      background: #222;
-      color: white;
-    }
-
-    /* Tab background white in dark mode, with black text for contrast */
-    .dark .tab, .dark .tab.active {
-      background: #fff;
-      color: black;
-    }
-  </style>
+    <title>Flux Browser</title>
+    <meta charset="UTF-8">
 </head>
 <body>
-  <iframe id="browser-frame" src=""></iframe>
-
-  <div id="overlay" onclick="closeOverlays()"></div>
-
-  <div id="center-search">
-    <input type="text" id="url-bar" placeholder="Search or enter URL">
-  </div>
-
-  <div id="settings-menu">
-    <h3>Settings</h3>
-    <label>
-      <input type="checkbox" id="darkToggle" onchange="toggleDarkMode()"> Dark Mode
-    </label>
-  </div>
-
-  <div id="bottom-bar">
-    <div id="controls">
-      <img id="new-tab-btn" src="newtab(b).png" onclick="toggleSearch(true)" alt="New Tab">
-      <img id="back-btn" src="backb.png" onclick="goBack()" alt="Back">
-      <img id="forward-btn" src="forwardb.png" onclick="goForward()" alt="Forward">
-    </div>
-    <div id="tabs"></div>
-  </div>
-
-  <script>
-  const browserFrame = document.getElementById('browser-frame');
-  const urlBar = document.getElementById('url-bar');
-  const tabsContainer = document.getElementById('tabs');
-  const overlay = document.getElementById('overlay');
-  const settingsMenu = document.getElementById('settings-menu');
-  const darkToggle = document.getElementById('darkToggle');
-  const bottomBar = document.getElementById('bottom-bar');
-  const backBtn = document.getElementById('back-btn');
-  const forwardBtn = document.getElementById('forward-btn');
-  const newTabBtn = document.getElementById('new-tab-btn');
-
-  const tabs = [];
-  let activeTabIndex = -1;
-  let darkMode = true;  // Enabled by default now
-
-  // Enable dark mode on load
-  window.addEventListener('DOMContentLoaded', () => {
-    darkToggle.checked = true;
-    document.body.classList.add('dark');
-    bottomBar.style.background = '#000000';
-
-    newTabBtn.src = 'newtab(b).png';
-    backBtn.src = 'backb.png';
-    forwardBtn.src = 'forwardb.png';
-  });
-
-  function toggleSearch(show) {
-    document.getElementById('center-search').style.display = show ? 'block' : 'none';
-    overlay.style.display = show ? 'block' : 'none';
-    if (show) urlBar.focus();
-  }
-
-  function toggleSettings(show) {
-    settingsMenu.style.display = show ? 'block' : 'none';
-    overlay.style.display = show ? 'block' : 'none';
-  }
-
-  function closeOverlays() {
-    toggleSearch(false);
-    toggleSettings(false);
-  }
-
-  function toggleDarkMode() {
-    darkMode = darkToggle.checked;
-    document.body.classList.toggle('dark', darkMode);
-
-    bottomBar.style.background = darkMode ? '#000000' : '#dedede';
-
-    if (darkMode) {
-      newTabBtn.src = 'newtab(b).png';
-      backBtn.src = 'backb.png';
-      forwardBtn.src = 'forwardb.png';
-    } else {
-      newTabBtn.src = 'newtabbt.png';
-      backBtn.src = 'back.png';
-      forwardBtn.src = 'forward.png';
-    }
-  }
-
-  urlBar.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') loadNewTab();
-  });
-
-  // Settings open on \ + s
-  const pressedKeys = new Set();
-  document.addEventListener('keydown', (event) => {
-    pressedKeys.add(event.key.toLowerCase());
-    if (pressedKeys.has('\\') && pressedKeys.has('s')) {
-      toggleSettings(true);
-    }
-  });
-
-  document.addEventListener('keyup', (event) => {
-    pressedKeys.delete(event.key.toLowerCase());
-  });
-
-  function loadNewTab() {
-    const input = urlBar.value.trim();
-    if (!input) return;
-
-    let finalUrl;
-    if (input.startsWith('http://') || input.startsWith('https://')) {
-      finalUrl = input;
-    } else if (input.includes('.') && !input.includes(' ')) {
-      finalUrl = 'https://' + input;
-    } else {
-      finalUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(input);
+    <h1 class="bigtext">Flux</h1>
+    <img class="image" src="logo.png">
+    <p class="smalltext">A browser that you deserve</p>
+    <h2 class="sidetext">Here is a little demo of Flux Browser.</h2>
+    <nav>
+    <a href="index.html" class="home">Home</a>
+     <a href="#about" class="about">About</a>
+      <a href="https://github.com/TopMyster/FluxBrowser" target="_blank"class="down">Download</a>
+    </nav>
+    <video class="vid" autoplay loop muted="0" height="450"><source src="video.mp4" type="video/mp4"></video>
+    </body>
+<style>
+    .bigtext {
+        font-size: 200px;
+        text-align: center;
+        margin-bottom: 10px; /* Reduce space below the heading */
+        color: white;
     }
 
-    createTab(finalUrl);
-    toggleSearch(false);
-    urlBar.value = '';
-  }
-
-  function createTab(url) {
-    const tab = {
-      url,
-      history: [url],
-      currentIndex: 0,
-      title: 'Loading...'
-    };
-    tabs.push(tab);
-    switchTab(tabs.length - 1);
-  }
-
-  function switchTab(index) {
-    activeTabIndex = index;
-    const tab = tabs[index];
-    loadURL(tab.url);
-    updateTabsUI();
-  }
-
-  function updateTabsUI() {
-    tabsContainer.innerHTML = '';
-    tabs.forEach((tab, index) => {
-      const button = document.createElement('div');
-      button.className = 'tab' + (index === activeTabIndex ? ' active' : '');
-      button.innerHTML = `<span>${tab.title || `Tab ${index + 1}`}</span>
-                          <button class="close-btn" onclick="closeTab(event, ${index})">×</button>`;
-      button.onclick = (e) => {
-        if (!e.target.classList.contains('close-btn')) switchTab(index);
-      };
-      tabsContainer.appendChild(button);
-    });
-  }
-
-  function closeTab(event, index) {
-    event.stopPropagation();
-    tabs.splice(index, 1);
-
-    if (activeTabIndex === index) {
-      activeTabIndex = index > 0 ? index - 1 : (tabs.length > 0 ? 0 : -1);
-      if (activeTabIndex >= 0) {
-        loadURL(tabs[activeTabIndex].url);
-      } else {
-        browserFrame.src = '';
-      }
-    } else if (index < activeTabIndex) {
-      activeTabIndex--;
+    .image {
+        width: 151px;
+        height: 135px;
+        display: block;
+        margin: 0 auto;
+        margin-top: 0; /* Remove space above the image */
     }
 
-    updateTabsUI();
-  }
-
-  function goBack() {
-    const tab = tabs[activeTabIndex];
-    if (tab && tab.currentIndex > 0) {
-      tab.currentIndex--;
-      tab.url = tab.history[tab.currentIndex];
-      loadURL(tab.url);
-    }
-  }
-
-  function goForward() {
-    const tab = tabs[activeTabIndex];
-    if (tab && tab.currentIndex < tab.history.length - 1) {
-      tab.currentIndex++;
-      tab.url = tab.history[tab.currentIndex];
-      loadURL(tab.url);
-    }
-  }
-
-  function loadURL(url) {
-    browserFrame.src = url;
-  }
-
-  browserFrame.addEventListener('load', () => {
-    const tab = tabs[activeTabIndex];
-    let title;
-    try {
-      title = browserFrame.contentDocument.title || tab.url;
-      const links = browserFrame.contentDocument.querySelectorAll('a[target]');
-      links.forEach(link => link.setAttribute('target', '_self'));
-    } catch {
-      title = tab.url;
+    .smalltext {
+        font-size: 25px;
+        text-align: center;
+        color: white;
     }
 
-    if (tab.url.includes("bing.com/search")) {
-      const q = tab.url.match(/[?&]q=([^&]+)/);
-      if (q) title = decodeURIComponent(q[1]);
+     .sidetext {
+        font-size: 15px;
+        color: white;
+          margin-top: 130px;
+        margin-bottom: 90px;
+        margin-left: 40%;
+        margin-right: 50;
+        position: center;
+
     }
 
-    tab.title = title;
-    updateTabsUI();
-
-    const newUrl = browserFrame.contentWindow?.location.href;
-    if (newUrl && newUrl !== tab.history[tab.currentIndex]) {
-      tab.history = tab.history.slice(0, tab.currentIndex + 1);
-      tab.history.push(newUrl);
-      tab.currentIndex++;
-      tab.url = newUrl;
+    .home {
+        color: inherit;
+        text-decoration: none;
+        position: fixed;
+        top: 30px;
+        left: 40px;
+        color: white;
+        font-size: 20px;
+        
     }
-  });
-  </script>
 
-</body>
+    .about {
+        color: inherit;
+        text-decoration: none;
+        position: fixed;
+        top: 30px;
+        left: 150px;
+        color: white;
+        font-size: 20px;
+    }
+
+
+    .down {
+        color: inherit;
+        text-decoration: none;
+        position: fixed;
+        top: 30px;
+        left: 260px;
+        color: white;
+        font-size: 20px;
+    }
+
+    body{
+        background-color: #202124;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    .vid {
+        margin-top: 130px;
+        margin-bottom: 90px;
+        margin-left: 30%;
+
+
+    }
+</style>
 </html>
