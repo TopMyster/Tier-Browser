@@ -12,5 +12,5 @@ The Browser itself is only on MacOS for now. There are a few hidden tricks in th
 
 Credit:
 
-Thank you to The Browser Companys Dia AI Chatbot for generating most of the code. 
+Thank you to The Browser Companys Dia AI Chatbot for generating some of the code. 
 Thanks to https://github.com/jojicoding for the name of the browser.
