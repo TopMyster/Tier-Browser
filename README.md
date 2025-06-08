@@ -5,6 +5,10 @@ There is are little to no bugs in the browser currently.
 
 
 
+
+
+
+
 Credit
 Thank you to The Browser Companys Dia AI Chatbot for generating most of the code. 
 Thanks to https://github.com/jojicoding for the name of the browser.
