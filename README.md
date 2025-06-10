@@ -1,7 +1,7 @@
 Welcome to Flux a unique browsing experience. 
 It's still in beta so don't switch to it fully just yet.
 There is are some bugs in the browser currently. The browser highlights on putting the website first rather than the browser
-Flux is only on MacOS for now. There are a few hidden tricks in the browser like ch/ for chatgpt results, flux/notes to get to notes, and flux/sketch to get to a sketching tool. The browser is running in a python framework that runs off chromium. It doesnt have any chrome bloatware.
+Flux is only on MacOS for now. There are a few hidden tricks in the browser like ch/ for chatgpt results, flux/notes to get to notes, and flux/sketch to get to a sketching tool. The browser is running in a python framework that runs off chromium. It doesnt have any chrome bloatware. For the source code go to the main branch.
 
 Screenshots For a video go to this site https://topmyster.github.io/FluxBrowser/
 
