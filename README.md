@@ -5,15 +5,9 @@ The Browser itself is only on MacOS for now. There are a few hidden tricks in th
 
 Screenshots(Sorry for not adding them before) For a video go to this site https://topmyster.github.io/FluxBrowser/
 
-<img width="1462" alt="Screenshot 2025-06-08 at 2 39 30 PM" src="https://github.com/user-attachments/assets/7b90acfd-31d5-4bab-a96c-c002bb643c2e" />
-
-<img width="1418" alt="Screenshot 2025-06-08 at 2 39 54 PM" src="https://github.com/user-attachments/assets/259470cd-9ccf-4cc0
-
-<img width="1462" alt="Screenshot 2025-06-08 at 2 40 37 PM" src="https://github.com/user-attachments/assets/ca082694-e452-4f3f-9a0c-db181fb82d89" />
--8150-491b5ebacfa0" />
-
-<img width="1462" alt="Screenshot 2025-06-08 at 2 41 12 PM" src="https://github.com/user-attachments/assets/f15b703c-f58e-43bd-a972-e46f78feb752" />
-
+<img width="1464" alt="Screenshot 2025-06-09 at 9 21 05 PM" src="https://github.com/user-attachments/assets/b421a6a6-7c33-46b1-8a93-c3525986a6dc" />
+<img width="1464" alt="Screenshot 2025-06-09 at 9 23 00 PM" src="https://github.com/user-attachments/assets/6142d499-4e90-4a4b-96dc-14b7e4dfb1d8" />
+<img width="1464" alt="Screenshot 2025-06-09 at 9 24 30 PM" src="https://github.com/user-attachments/assets/426771cc-d763-4cd3-81d7-43cd983cb1a9" />
 
 Credit:
 
