@@ -1,4 +1,4 @@
-# flux_browser.py
+# isle_browser.py
 
 import sys
 import os
@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QPushButton, QLineEdit, QDialog, QLabel,
     QListWidget, QListWidgetItem, QTextEdit, QScrollArea, QStackedLayout,
-    QMessageBox, QCheckBox
+    QMessageBox, QRadioButton, QButtonGroup, QFrame, QSpacerItem, QSizePolicy
 )
 
 try:
@@ -29,7 +29,7 @@ BOTTOM_BAR_DEFAULT = 56
 BAR_WIDTH = 660
 BAR_HEIGHT = 64
 FLOAT_BAR_RADIUS = 24
-CONFIG_FILE = "fluxbrowser_config.json"
+CONFIG_FILE = "islebrowser_config.json"
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -54,63 +54,6 @@ def get_youtube_embed_url(url):
         video_id = match.group(1)
         return f"https://www.youtube.com/embed/{video_id}?autoplay=1"
     return None
-
-class SettingsDialog(QDialog):
-    def __init__(self, parent, bottom_bar_height, current_bg_color):
-        super().__init__(parent)
-        self.setWindowTitle("Settings")
-        self.setModal(True)
-        self.setFixedSize(300, 220)
-        layout = QVBoxLayout()
-
-        color_label = QLabel("Theme Color:")
-        layout.addWidget(color_label)
-
-        self.color_buttons_layout = QHBoxLayout()
-        self.dark_color_btn = QPushButton("Dark")
-        self.dark_color_btn.setStyleSheet("background-color: #181818; color: white;")
-        self.dark_color_btn.clicked.connect(lambda: self.parent()._update_background_color("#181818"))
-
-        self.light_color_btn = QPushButton("Light")
-        self.light_color_btn.setStyleSheet("background-color: #f0f0f0; color: black;")
-        self.light_color_btn.clicked.connect(lambda: self.parent()._update_background_color("#f0f0f0"))
-
-        self.color_buttons_layout.addWidget(self.dark_color_btn)
-        self.color_buttons_layout.addWidget(self.light_color_btn)
-        layout.addLayout(self.color_buttons_layout)
-
-        self.credit_btn = QPushButton("Credit")
-        layout.addWidget(self.credit_btn)
-        self.credit_btn.clicked.connect(self.open_credit_link)
-
-        layout.addStretch(1)
-        self.setLayout(layout)
-
-        self.dark_color_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.light_color_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
-    def open_credit_link(self):
-        webbrowser.open("https://github.com/TopMyster/FluxBrowser/blob/main/README.md")
-
-class HistoryDialog(QDialog):
-    def __init__(self, parent, history_list):
-        super().__init__(parent)
-        self.setWindowTitle("Search History")
-        self.setModal(True)
-        self.setFixedSize(500, 400)
-        layout = QVBoxLayout()
-        self.list_widget = QListWidget()
-        for url in reversed(history_list):
-            item = QListWidgetItem(url)
-            self.list_widget.addItem(item)
-        layout.addWidget(self.list_widget)
-        self.setLayout(layout)
-        self.list_widget.itemDoubleClicked.connect(self.open_url)
-        self.selected_url = None
-
-    def open_url(self, item):
-        self.selected_url = item.text()
-        self.accept()
 
 class NotesWidget(QWidget):
     def __init__(self, parent=None):
@@ -142,7 +85,7 @@ class MiniPlayer(QDialog):
 class HomePage(QWidget):
     def __init__(self, light_mode=False):
         super().__init__()
-        self.label = QLabel("Flux", self)
+        self.label = QLabel("Isle", self)
         font = QFont()
         font.setPointSize(48)
         font.setBold(True)
@@ -317,12 +260,20 @@ class BrowserTab(QWidget):
         if self.is_home:
             return "New Tab"
         if hasattr(self, "webview"):
+            url_str = self.webview.url().toString()
+            match = re.match(r"https?://www\.google\.com/search\?q=([^&]+)", url_str)
+            if match:
+                return QUrl.fromPercentEncoding(match.group(1).encode())
             return self.webview.title() if self.webview.title() else "New Tab"
         return "New Tab"
 
     def url(self):
         if hasattr(self, "webview") and not self.is_home:
-            return self.webview.url().toString()
+            url_str = self.webview.url().toString()
+            match = re.match(r"https?://www\.google\.com/search\?q=([^&]+)", url_str)
+            if match:
+                return QUrl.fromPercentEncoding(match.group(1).encode())
+            return url_str
         return ""
 
     def is_video_playing(self, callback):
@@ -366,9 +317,13 @@ class TabBar(QWidget):
         self.on_select_tab = on_select_tab
         self.on_close_tab = on_close_tab
 
+        self.tab_mode = "horizontal"  # "horizontal" or "vertical"
+        self.vertical_tab_popup = None
+        self._popup_mouse_inside = False
+
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scroll.setFrameShape(QScrollArea.Shape.NoFrame)
         self.scroll.setStyleSheet("""
@@ -384,11 +339,50 @@ class TabBar(QWidget):
         self.tabs_widget.setLayout(self.tabs_layout)
         self.scroll.setWidget(self.tabs_widget)
 
+        self.vertical_tabs_btn = QPushButton("Tabs")
+        self.vertical_tabs_btn.setFixedHeight(40)
+        self.vertical_tabs_btn.setFixedWidth(60)
+        self.vertical_tabs_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(255,255,255,0.08);
+                color: #fff;
+                border-radius: 16px;
+                font-size: 16px;
+                margin-top: 4px;
+                margin-bottom: 4px;
+                border: none;
+            }
+            QPushButton:hover {
+                background: rgba(33, 150, 243, 0.2);
+                color: #2196f3;
+            }
+        """)
+        self.vertical_tabs_btn.setVisible(False)
+        self.vertical_tabs_btn.installEventFilter(self)
+        self.vertical_tabs_btn.clicked.connect(self._on_tabs_btn_clicked)
+
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.scroll)
         self.setLayout(layout)
         self.tab_buttons = []
+        self.update_tabs()
+
+        self.setMouseTracking(True)
+        self.scroll.setMouseTracking(True)
+        self.tabs_widget.setMouseTracking(True)
+        self.installEventFilter(self)
+
+        self._popup_opened_by_click = False
+
+    def set_tab_mode(self, mode):
+        self.tab_mode = mode
+        if mode == "horizontal":
+            self.scroll.setVisible(True)
+            self.vertical_tabs_btn.setVisible(False)
+        else:
+            self.scroll.setVisible(False)
+            self.vertical_tabs_btn.setVisible(True)
         self.update_tabs()
 
     def update_tabs(self):
@@ -417,9 +411,7 @@ class TabBar(QWidget):
             font.setBold(i == current_index)
             font.setPointSize(15)
             label.setFont(font)
-            label_text_color = "white"
-            if i == current_index:
-                label_text_color = "#2196f3"
+            label_text_color = "#2196f3" if i == current_index else "white"
             label.setStyleSheet(f"color: {label_text_color}; background: transparent; padding: 0px; margin: 0px;")
             label.setContentsMargins(0, 0, 0, 0)
             btn_layout.addWidget(label)
@@ -454,12 +446,12 @@ class TabBar(QWidget):
             btn.setFixedHeight(40)
             btn.setFixedWidth(max_tab_width)
             btn.setStyleSheet(f"""
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.08);
                 border-radius: 16px;
                 margin-top: 4px;
                 margin-bottom: 4px;
-                {'background: rgba(33, 150, 243, 0.2);' if i == current_index else ''}
-                backdrop-filter: blur(30px);
+                {'background: rgba(33, 150, 243, 0.18);' if i == current_index else ''}
+                border: none;
             """)
             def make_tab_press(idx):
                 def tab_press(event):
@@ -469,6 +461,271 @@ class TabBar(QWidget):
             btn.mousePressEvent = make_tab_press(i)
             self.tabs_layout.addWidget(btn)
             self.tab_buttons.append(btn)
+
+    def eventFilter(self, obj, event):
+        if self.tab_mode == "vertical":
+            if obj == self.vertical_tabs_btn:
+                if event.type() == QEvent.Type.Enter:
+                    if not self._popup_opened_by_click:
+                        self.show_vertical_tab_popup()
+                elif event.type() == QEvent.Type.Leave:
+                    QTimer.singleShot(100, self._maybe_hide_vertical_tab_popup)
+            if obj == self and event.type() == QEvent.Type.Leave:
+                QTimer.singleShot(100, self._maybe_hide_vertical_tab_popup)
+        return super().eventFilter(obj, event)
+
+    def _on_tabs_btn_clicked(self):
+        if self.vertical_tab_popup is not None:
+            self.hide_vertical_tab_popup()
+            self._popup_opened_by_click = False
+        else:
+            self._popup_opened_by_click = True
+            self.show_vertical_tab_popup()
+
+    def show_vertical_tab_popup(self):
+        if self.vertical_tab_popup is not None:
+            return
+        self.vertical_tab_popup = QFrame(self, Qt.WindowType.Popup)
+        self.vertical_tab_popup.setStyleSheet("""
+            QFrame {
+                background: #232323;
+                border-radius: 20px;
+                border: 1px solid #444;
+                padding: 0px;
+            }
+        """)
+        vlayout = QVBoxLayout()
+        vlayout.setContentsMargins(0, 8, 0, 8)
+        vlayout.setSpacing(0)
+        tab_titles = self.get_tab_titles()
+        current_index = self.get_current_tab()
+        for i, title in enumerate(tab_titles):
+            tab_btn = QWidget()
+            tab_btn_layout = QHBoxLayout()
+            tab_btn_layout.setContentsMargins(12, 2, 12, 2)
+            tab_btn_layout.setSpacing(8)
+            dot = QLabel("●")
+            dot.setStyleSheet(f"color: {'#2196f3' if i == current_index else '#888'}; font-size: 16px; background: transparent;")
+            tab_btn_layout.addWidget(dot)
+            label = QLabel(title if title else "New Tab")
+            font = QFont()
+            font.setBold(i == current_index)
+            font.setPointSize(15)
+            label.setFont(font)
+            label.setStyleSheet(f"color: {'#2196f3' if i == current_index else 'white'}; background: transparent;")
+            tab_btn_layout.addWidget(label)
+            tab_btn_layout.addStretch(1)
+            close_btn = QPushButton("×")
+            close_font = QFont()
+            close_font.setBold(True)
+            close_font.setPointSize(18)
+            close_btn.setFont(close_font)
+            close_btn.setStyleSheet(
+                """
+                QPushButton {
+                    background: transparent;
+                    color: #cccccc;
+                    border: none;
+                    font-size: 20px;
+                    padding: 0 4px;
+                }
+                QPushButton:hover {
+                    color: #fff;
+                    background: rgba(255,0,0,0.5);
+                    border-radius: 12px;
+                }
+                """
+            )
+            close_btn.setFixedSize(32, 32)
+            close_btn.clicked.connect(lambda checked=False, idx=i: self.on_close_tab(idx))
+            tab_btn_layout.addWidget(close_btn)
+            tab_btn.setLayout(tab_btn_layout)
+            tab_btn.setFixedHeight(40)
+            tab_btn.setStyleSheet(f"""
+                background: {'rgba(33, 150, 243, 0.18);' if i == current_index else 'rgba(255,255,255,0.04)'};
+                border-radius: 16px;
+                margin: 2px 0;
+                border: none;
+            """)
+            def make_tab_press(idx):
+                def tab_press(event):
+                    if event.button() == Qt.MouseButton.LeftButton:
+                        self.on_select_tab(idx)
+                        self.hide_vertical_tab_popup()
+                        self._popup_opened_by_click = False
+                return tab_press
+            tab_btn.mousePressEvent = make_tab_press(i)
+            vlayout.addWidget(tab_btn)
+        vlayout.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        self.vertical_tab_popup.setLayout(vlayout)
+        self.vertical_tab_popup.setMouseTracking(True)
+        self.vertical_tab_popup.installEventFilter(self)
+        self.vertical_tab_popup.enterEvent = self._popup_enter
+        self.vertical_tab_popup.leaveEvent = self._popup_leave
+
+        btn_rect = self.vertical_tabs_btn.rect()
+        btn_global = self.vertical_tabs_btn.mapToGlobal(btn_rect.topLeft())
+        popup_width = 320
+        popup_height = self.vertical_tab_popup.sizeHint().height()
+        self.vertical_tab_popup.setFixedWidth(popup_width)
+        self.vertical_tab_popup.move(btn_global.x() + btn_rect.width()//2 - popup_width//2, btn_global.y() - popup_height - 8)
+        self.vertical_tab_popup.show()
+
+    def _popup_enter(self, event):
+        self._popup_mouse_inside = True
+
+    def _popup_leave(self, event):
+        self._popup_mouse_inside = False
+        QTimer.singleShot(100, self._maybe_hide_vertical_tab_popup)
+
+    def _maybe_hide_vertical_tab_popup(self):
+        if not self._popup_mouse_inside and not self.vertical_tabs_btn.underMouse():
+            self.hide_vertical_tab_popup()
+            self._popup_opened_by_click = False
+
+    def hide_vertical_tab_popup(self):
+        if self.vertical_tab_popup is not None:
+            self.vertical_tab_popup.hide()
+            self.vertical_tab_popup.deleteLater()
+            self.vertical_tab_popup = None
+
+class SettingsDialog(QDialog):
+    def __init__(self, parent, bottom_bar_height, current_bg_color):
+        super().__init__(parent)
+        self.setWindowTitle("Settings")
+        self.setModal(True)
+        self.setFixedSize(340, 320)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(24, 18, 24, 18)
+        layout.setSpacing(18)
+
+        # Detect dark mode
+        is_dark_mode = QColor(current_bg_color).name().lower() in ["#181818", "#232323", "#18191a", "#000000"]
+
+        # If dark mode, make all widgets in settings white
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background: #232323;
+                }
+                QLabel, QRadioButton, QPushButton {
+                    color: white;
+                    background: #232323;
+                }
+                QRadioButton::indicator {
+                    background: white;
+                    border: 1px solid #bbb;
+                }
+                QRadioButton::indicator:checked {
+                    background: #2196f3;
+                }
+            """)
+        else:
+            self.setStyleSheet("")
+
+        color_label = QLabel("Theme Color")
+        color_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 4px;")
+        layout.addWidget(color_label)
+
+        self.color_buttons_layout = QHBoxLayout()
+        self.dark_color_btn = QPushButton("Dark")
+        self.dark_color_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #181818; color: white; border-radius: 8px; padding: 8px 18px; font-size: 15px;
+            }
+            QPushButton:checked, QPushButton:pressed {
+                background-color: #232323;
+            }
+        """)
+        self.dark_color_btn.clicked.connect(lambda: self.parent()._update_background_color("#181818"))
+
+        self.light_color_btn = QPushButton("Light")
+        self.light_color_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f0f0f0; color: #232323; border-radius: 8px; padding: 8px 18px; font-size: 15px;
+            }
+            QPushButton:checked, QPushButton:pressed {
+                background-color: #e0e0e0;
+            }
+        """)
+        self.light_color_btn.clicked.connect(lambda: self.parent()._update_background_color("#f0f0f0"))
+
+        self.color_buttons_layout.addWidget(self.dark_color_btn)
+        self.color_buttons_layout.addWidget(self.light_color_btn)
+        layout.addLayout(self.color_buttons_layout)
+
+        tab_mode_label = QLabel("Tab Layout")
+        tab_mode_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 12px; margin-bottom: 4px;")
+        layout.addWidget(tab_mode_label)
+        self.tab_mode_group = QButtonGroup(self)
+        self.horizontal_radio = QRadioButton("Horizontal Tabs (scrollable)")
+        self.vertical_radio = QRadioButton("Vertical Tabs (Tabs button)")
+        self.horizontal_radio.setStyleSheet("font-size: 15px; margin-bottom: 2px;")
+        self.vertical_radio.setStyleSheet("font-size: 15px; margin-bottom: 2px;")
+        self.tab_mode_group.addButton(self.horizontal_radio)
+        self.tab_mode_group.addButton(self.vertical_radio)
+
+        layout.addWidget(self.horizontal_radio)
+        layout.addWidget(self.vertical_radio)
+
+        current_mode = self.parent().config.get("tab_mode", "horizontal")
+        if current_mode == "vertical":
+            self.vertical_radio.setChecked(True)
+        else:
+            self.horizontal_radio.setChecked(True)
+
+        self.tab_mode_group.buttonClicked.connect(self.on_tab_mode_changed)
+
+        layout.addStretch(1)
+
+        self.credit_btn = QPushButton("Credit")
+        self.credit_btn.setStyleSheet("""
+            QPushButton {
+                background: #2196f3; color: white; border-radius: 8px; font-size: 15px; padding: 8px 18px;
+            }
+            QPushButton:hover {
+                background: #1976d2;
+            }
+        """)
+        layout.addWidget(self.credit_btn, alignment=Qt.AlignmentFlag.AlignRight)
+        self.credit_btn.clicked.connect(self.open_credit_link)
+
+        self.setLayout(layout)
+
+        self.dark_color_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.light_color_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+    def open_credit_link(self):
+        webbrowser.open("https://github.com/TopMyster/FluxBrowser/blob/main/README.md")
+
+    def on_tab_mode_changed(self, btn):
+        mode = "horizontal" if self.horizontal_radio.isChecked() else "vertical"
+        self.parent().config["tab_mode"] = mode
+        save_config(self.parent().config)
+        self.parent().tab_bar.set_tab_mode(mode)
+        self.parent().floating_bar.tab_bar.set_tab_mode(mode)
+        # Save immediately so it persists on restart
+        save_config(self.parent().config)
+
+class HistoryDialog(QDialog):
+    def __init__(self, parent, history_list):
+        super().__init__(parent)
+        self.setWindowTitle("Search History")
+        self.setModal(True)
+        self.setFixedSize(500, 400)
+        layout = QVBoxLayout()
+        self.list_widget = QListWidget()
+        for url in reversed(history_list):
+            item = QListWidgetItem(url)
+            self.list_widget.addItem(item)
+        layout.addWidget(self.list_widget)
+        self.setLayout(layout)
+        self.list_widget.itemDoubleClicked.connect(self.open_url)
+        self.selected_url = None
+
+    def open_url(self, item):
+        self.selected_url = item.text()
+        self.accept()
 
 class FloatingBar(QWidget):
     def __init__(self, parent, get_tab_titles, get_current_tab, on_select_tab, on_close_tab, on_new_tab, on_back, on_forward, on_search, on_settings, get_can_go_back, get_can_go_forward):
@@ -493,7 +750,7 @@ class FloatingBar(QWidget):
 
         nav_search_layout = QHBoxLayout(self.nav_search_background)
         nav_search_layout.setContentsMargins(8, 0, 8, 0)
-        nav_search_layout.setSpacing(0)  # No extra gap
+        nav_search_layout.setSpacing(0)
 
         self.plus_btn = QPushButton("+")
         self.plus_btn.setFixedSize(36, 36)
@@ -521,7 +778,6 @@ class FloatingBar(QWidget):
         self.settings_btn.setStyleSheet("background: transparent; color: white; font-size: 20px; border: none;")
         self.settings_btn.clicked.connect(on_settings)
 
-        # No space between +, <, > buttons
         nav_search_layout.addWidget(self.plus_btn)
         nav_search_layout.addWidget(self.back_btn)
         nav_search_layout.addWidget(self.forward_btn)
@@ -529,8 +785,6 @@ class FloatingBar(QWidget):
         nav_search_layout.addWidget(self.search_bar, stretch=1)
         nav_search_layout.addSpacing(2)
         nav_search_layout.addWidget(self.settings_btn)
-
-        self.nav_search_background.setLayout(nav_search_layout)
 
         self.tab_bar = TabBar(
             get_tab_titles=get_tab_titles,
@@ -545,6 +799,9 @@ class FloatingBar(QWidget):
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(24px);
         """)
+
+        nav_search_layout.addWidget(self.tab_bar.vertical_tabs_btn)
+        self.tab_bar.vertical_tabs_btn.setVisible(self.tab_bar.tab_mode == "vertical")
 
         main_layout.addWidget(self.nav_search_background, stretch=1)
         main_layout.addWidget(self.tab_bar, stretch=0)
@@ -568,10 +825,10 @@ class FloatingBar(QWidget):
         self.plus_btn.setStyleSheet(f"background: transparent; color: {text_color}; font-size: 24px; border: none; margin:0; padding:0;")
         self.settings_btn.setStyleSheet(f"background: transparent; color: {text_color}; font-size: 20px; border: none;")
 
-class FluxBrowser(QMainWindow):
+class IsleBrowser(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Flux Browser")
+        self.setWindowTitle("Isle Browser")
         self.setGeometry(100, 100, 1350, 800)
         self.config = load_config()
         self.mode = "dynamic"
@@ -617,7 +874,7 @@ class FluxBrowser(QMainWindow):
 
         controls_nav_search_layout = QHBoxLayout(self.controls_nav_search_background)
         controls_nav_search_layout.setContentsMargins(8, 0, 8, 0)
-        controls_nav_search_layout.setSpacing(0)  # No extra gap
+        controls_nav_search_layout.setSpacing(0)
 
         self.plus_btn = QPushButton("+")
         self.plus_btn.setFixedSize(36, 36)
@@ -645,7 +902,6 @@ class FluxBrowser(QMainWindow):
         self.settings_btn.setStyleSheet("background: transparent; color: white; font-size: 20px; border: none;")
         self.settings_btn.clicked.connect(self.show_settings)
 
-        # No space between +, <, > buttons
         controls_nav_search_layout.addWidget(self.plus_btn)
         controls_nav_search_layout.addWidget(self.back_btn)
         controls_nav_search_layout.addWidget(self.forward_btn)
@@ -653,7 +909,6 @@ class FluxBrowser(QMainWindow):
         controls_nav_search_layout.addWidget(self.search_bar, stretch=1)
         controls_nav_search_layout.addSpacing(2)
         controls_nav_search_layout.addWidget(self.settings_btn)
-        self.controls_nav_search_background.setLayout(controls_nav_search_layout)
 
         self.tab_bar = TabBar(
             get_tab_titles=lambda: self.tab_titles,
@@ -667,6 +922,10 @@ class FluxBrowser(QMainWindow):
             border-radius: 15px;
             backdrop-filter: blur(30px);
         """)
+        self.tab_bar.set_tab_mode(self.config.get("tab_mode", "horizontal"))
+
+        controls_nav_search_layout.addWidget(self.tab_bar.vertical_tabs_btn)
+        self.tab_bar.vertical_tabs_btn.setVisible(self.tab_bar.tab_mode == "vertical")
 
         bar_layout.addWidget(self.controls_nav_search_background, stretch=1)
         bar_layout.addWidget(self.tab_bar, stretch=0)
@@ -689,6 +948,7 @@ class FluxBrowser(QMainWindow):
             get_can_go_back=lambda: self.can_go_back() if self.tabs else False,
             get_can_go_forward=lambda: self.can_go_forward() if self.tabs else False
         )
+        self.floating_bar.tab_bar.set_tab_mode(self.config.get("tab_mode", "horizontal"))
         self.floating_bar.hide()
 
         self.tab_buttons_bottom = []
@@ -701,17 +961,21 @@ class FluxBrowser(QMainWindow):
         self.shortcut_newtab_win = QShortcut(QKeySequence("Ctrl+T"), self)
         self.shortcut_newtab_win.activated.connect(self.add_tab_from_button)
 
-        # Connect search bar color update
         self.search_bar.textChanged.connect(self.update_search_bar_color)
         self.floating_bar.search_bar.textChanged.connect(self.update_search_bar_color)
 
+        # Restore tab mode from config
+        tab_mode = self.config.get("tab_mode", "horizontal")
+        self.tab_bar.set_tab_mode(tab_mode)
+        self.floating_bar.tab_bar.set_tab_mode(tab_mode)
+
     def update_search_bar_color(self, text):
         if text.startswith("ch/"):
-            color = "#98ff98"  # Mint green
-        elif text.startswith("flux/"):
-            color = "#2196f3"  # Blue
+            color = "#98ff98"
+        elif text.startswith("isle/"):
+            color = "#2196f3"
         else:
-            color = "rgba(255,255,255,0.2)"  # Default
+            color = "rgba(255,255,255,0.2)"
         self.search_bar.setStyleSheet(
             f"background: {color}; color: white; border: none; border-radius: 12px; padding: 4px 8px; font-size: 16px; min-width: 60px; max-width: 180px;"
         )
@@ -754,12 +1018,11 @@ class FluxBrowser(QMainWindow):
             if query:
                 url = f"https://chat.openai.com/?q={QUrl.toPercentEncoding(query).data().decode()}"
                 self.load_url_in_current_tab(url)
-        elif text == "flux/sketch":
+        elif text == "isle/sketch":
             self.show_sketch_tab()
-        elif text == "flux/notes":
+        elif text == "isle/notes":
             self.show_notes_tab()
-        elif text.startswith("flux/"):
-            # Just change color, do nothing else
+        elif text.startswith("isle/"):
             pass
         else:
             self.load_url_in_current_tab(text)
@@ -847,7 +1110,7 @@ class FluxBrowser(QMainWindow):
                 self.search_bar.setText(current_tab_url)
                 self.floating_bar.search_bar.setText(current_tab_url)
 
-            self.setWindowTitle("Flux Browser")
+            self.setWindowTitle("Isle Browser")
             self.update_tab_ui()
             self.update_nav_buttons()
 
@@ -1021,13 +1284,15 @@ class FluxBrowser(QMainWindow):
     def closeEvent(self, event):
         self.config["mode"] = self.mode
         self.config["bottom_bar_height"] = self.bottom_bar_height
+        # Save tab mode on close
+        self.config["tab_mode"] = self.tab_bar.tab_mode
         save_config(self.config)
         super().closeEvent(event)
 
 if __name__ == "__main__":
-    print("Starting Flux Browser application...")
+    print("Starting Isle Browser application...")
     app = QApplication(sys.argv)
-    app.setApplicationName("Flux Browser")
+    app.setApplicationName("Isle Browser")
 
     font = QFont("Segoe UI", 10)
     app.setFont(font)
@@ -1053,7 +1318,7 @@ if __name__ == "__main__":
         }
     """)
 
-    window = FluxBrowser()
+    window = IsleBrowser()
     window.show()
-    print("Flux Browser window created and shown.")
+    print("Isle Browser window created and shown.")
     sys.exit(app.exec())
