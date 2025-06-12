@@ -5,6 +5,7 @@ Isle is only on MacOS for now. There are a few hidden tricks in the browser like
 
 
 Screenshots (For a demo video https://youtu.be/H05NrtfNTL0)
+
 <img width="1349" alt="Screenshot 2025-06-11 at 9 16 13 PM" src="https://github.com/user-attachments/assets/8f70e89b-ee25-476e-b630-892b184e820e" />
 <img width="1566" alt="Screenshot 2025-06-10 at 2 39 38 PM" src="https://github.com/user-attachments/assets/e9b2720c-3423-4490-8af0-030b8b9112e1" />
 <img width="1566" alt="Screenshot 2025-06-10 at 2 40 50 PM" src="https://github.com/user-attachments/assets/70d7c3e3-2949-430d-b266-e997a63150f0" />
