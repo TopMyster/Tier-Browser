@@ -4,7 +4,7 @@ There is are some bugs in the browser currently. The browser highlights on putti
 Isle is only on MacOS for now. There are a few hidden tricks in the browser like ch/ for chatgpt results, isle/notes to get to notes, and isle/sketch to get to a sketching tool. The browser is running in a python framework that runs off chromium. It doesnt have any chrome bloatware. For the source code go to the main branch.
 
 
-Screenshots (For a demo video https://youtu.be/H05NrtfNTL0)
+Screenshots (For a more news subsribe to https://www.youtube.com/@Islebrowser)
 
 <img width="1349" alt="Screenshot 2025-06-11 at 9 16 13 PM" src="https://github.com/user-attachments/assets/8f70e89b-ee25-476e-b630-892b184e820e" />
 <img width="1566" alt="Screenshot 2025-06-10 at 2 39 38 PM" src="https://github.com/user-attachments/assets/e9b2720c-3423-4490-8af0-030b8b9112e1" />
