@@ -1,3 +1,4 @@
+JUST CLEARIFING THIS IS NOT A COMMERCIAL PRODUCT! I USED DIA'S AI TO MAKE MOST OF THIS. 
 Welcome to Isle a unique browsing experience. 
 It's still in beta so don't switch to it fully just yet.
 There is are some bugs in the browser currently. The browser highlights on putting the website first rather than the browser
