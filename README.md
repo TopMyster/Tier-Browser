@@ -16,7 +16,3 @@ Screenshots (For a more news subsribe to https://www.youtube.com/@Islebrowser)
 Credit:
 
 Thank you to The Browser Companys Dia AI Chatbot for generating some of the code. 
-Thanks to https://github.com/jojicoding for the name of the browser.
-
-
-
