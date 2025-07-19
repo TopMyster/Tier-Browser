@@ -1,0 +1,110 @@
+<body style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; background-color: rgba(255, 255, 255, 0.374);
+    backdrop-filter: blur(10px);">
+    <center>
+        <div id="drag">
+            
+        </div>
+<div id="home" style="top: 100px; position: absolute; left: 50%; transform: translateX(-50%); display:block; ">
+        <div id="settings">
+            <button onclick="hidSettings()">X</button>
+            <h1>Settings</h1>
+            <p>______________________________________________</p>
+            <label for="engineSelect">Default Search Engine:</label>
+            <select id="engineSelect" style="margin-left: 10px; padding: 5px; border-radius: 5px; margin-bottom: 15px;">
+                <option value="Bing">Bing</option>
+                <option value="Google">Google</option>
+                <option value="Perplexity">Perplexity</option>
+                <option value="Brave">Brave</option>
+                <option value="Yahoo">Yahoo</option>
+                <option value="Duckduckgo">DuckDuckGo</option>
+            </select>
+            <br>
+            <label for="themeSelect">Theme:</label>
+            <select id="themeSelect" style="margin-left: 10px; padding: 5px; border-radius: 5px;">
+                <option value="light">Light Mode</option>
+                <option value="dark">Dark Mode</option>
+            </select>
+            <h2>Mode</h2>
+            <div id="fullswitch" style="background-color: #82AAFF; text-align:left; width: 100px; border-radius: 50px;">
+                <button style="width: 50px; border-radius: 50px;  height: 50px;" id="switch" onclick="right()"></button>
+            </div>
+        </div>
+        <div id="content">
+            <h1 style="font-size: 50px;">Isle</h1>
+            <p style="font-size: 18px;">The browser you deserve</p>
+           <a style="position: absolute; margin-top: 5px; font-size: 50px;" onclick="showSettings()">⚙︎</a>
+
+        </div>
+    </div>
+
+     <script>
+        function setupSettings() {
+            const saved = localStorage.getItem('browserSettings');
+            let settings = {
+                searchEngine: 'Bing',
+                theme: 'light',
+                homepage: 'home.html',
+                version: '1.0.0'
+            };
+            
+            if (saved) {
+                try {
+                    settings = { ...settings, ...JSON.parse(saved) };
+                } catch (e) {}
+            }
+            
+            const engineSelect = document.getElementById('engineSelect');
+            if (engineSelect) {
+                engineSelect.value = settings.searchEngine;
+                
+                engineSelect.addEventListener('change', function() {
+                    settings.searchEngine = this.value;
+                    localStorage.setItem('browserSettings', JSON.stringify(settings));
+                    
+                    this.style.backgroundColor = '#90EE90';
+                    setTimeout(() => this.style.backgroundColor = '', 500);
+                    
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'ENGINE_CHANGED',
+                            engine: this.value
+                        }, '*');
+                    }
+                });
+            }
+            
+            const themeSelect = document.getElementById('themeSelect');
+            if (themeSelect) {
+                themeSelect.value = settings.theme;
+                
+                themeSelect.addEventListener('change', function() {
+                    settings.theme = this.value;
+                    localStorage.setItem('browserSettings', JSON.stringify(settings));
+                    
+                    this.style.backgroundColor = '#90EE90';
+                    setTimeout(() => this.style.backgroundColor = '', 500);
+                    
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'THEME_CHANGED',
+                            theme: this.value
+                        }, '*');
+                    }
+                });
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', setupSettings);
+        
+        function showSettings() {
+            document.getElementById('settings').style.display = 'block';
+        }
+        
+        function hidSettings() {
+            document.getElementById('settings').style.display = 'none';
+        }
+     </script>
+     <link rel="stylesheet" href="styles.css">
+</body>
+    </center>
+    </body>

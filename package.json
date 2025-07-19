@@ -1,0 +1,14 @@
+{
+  "name": "isle-nova",
+  "version": "1.0.0",
+  "description": "A new innovative browser",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-packager . Isle Nova --icon=assets/icon"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-packager": "^17.1.2"
+  }
+}

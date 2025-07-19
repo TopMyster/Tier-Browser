@@ -1,0 +1,8 @@
+1. npm install
+
+2. npm start
+
+3.  npm install --save-dev electron-packager
+
+4. npm run package
+
