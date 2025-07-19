@@ -1,8 +1,4 @@
-JUST CLARIFING THIS IS NOT A COMMERCIAL PRODUCT! I USED DIA'S AI TO MAKE MOST OF THIS. 
-Welcome to Isle a unique browsing experience. 
-It's still in beta so don't switch to it fully just yet.
-There is are some bugs in the browser currently. The browser highlights on putting the website first rather than the browser
-Isle is only on MacOS for now. There are a few hidden tricks in the browser like ch/ for chatgpt results, isle/notes to get to notes, and isle/sketch to get to a sketching tool. The browser is running in a python framework that runs off chromium. It doesnt have any chrome bloatware. For the source code go to the main branch.
+Isle Browser lite is the non vibe coded version of the browser. It is better designed and more well maintained. Please do not shame or mock my creation in the issues bar. The bar is only to be used for an issue with the software. Isle browser lite is created by me alone and I would prefer if people won't mock it. I only vibe coded the original isle browser as an experimental browser to see hiw efficient and well ai could code. Isle browser lite is a work in progress. ENJOY!😁
 
 
 Screenshots (For a more news subsribe to https://www.youtube.com/@Islebrowser)
