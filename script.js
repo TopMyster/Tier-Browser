@@ -385,11 +385,23 @@ document.getElementById('bookmarks').style.display = 'none'
 }
 
 function addbm() {
-let newEl = document.createElement('a')
-let btnText = document.createTextNode(document.getElementById('bmtext').value)
-let bmlink = document.createAttribute('href')
-bmlink.value = document.getElementById('bmlink').value
-document.getElementById('bookmarks').appendChild(newEl)
-newEl.appendChild(btnText)
-newEl.setAttributeNode(bmlink)
+
+if (!document.getElementById('bmlink') || !document.getElementById('bmtext')) {
+    alert('Please enter both a name and a URL for the bookmark.');
+}
+const bmText = document.getElementById('bmtext').value;
+const bmLink = document.getElementById('bmlink').value;
+const url = 'https://' + bmLink;
+let newEl = document.createElement('a');
+let btnText = document.createTextNode(bmText + " ");
+newEl.appendChild(btnText);
+let bmlink = document.createAttribute('href');
+bmlink.value = url;
+newEl.setAttributeNode(bmlink);
+newEl.onclick = function(e) {
+    e.preventDefault();
+    document.getElementById('Browser').src = url;
+};
+document.getElementById('bookmarks').appendChild(newEl);
+
 }
