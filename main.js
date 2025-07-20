@@ -17,6 +17,16 @@ if (!electronIsDev) {
 // Enable live reload for Electron during development
 if (electronSquirrelStartup) app.quit();
 
+function getIconPath() {
+  if (process.platform === 'win32') {
+    return join(__dirname, 'assets', 'icon.png');
+  } else if (process.platform === 'darwin') {
+    return join(__dirname, 'assets', 'icon.icns');
+  } else {
+    return join(__dirname, 'assets', 'icon.png');
+  }
+}
+
 function createWindow () {
   const win = new BrowserWindow({
     width: 1400,
