@@ -1,7 +1,7 @@
-const { FusesPlugin } = require('@electron-forge/plugin-fuses');
-const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+import { FusesPlugin } from '@electron-forge/plugin-fuses';
+import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
-module.exports = {
+export default {
   packagerConfig: {
     asar: true,
   },
@@ -9,19 +9,24 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: 'isle-nova'
+      },
+      platforms: ['win32']
     },
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      platforms: ['darwin', 'win32'],
     },
     {
       name: '@electron-forge/maker-deb',
       config: {},
+      platforms: ['linux']
     },
     {
       name: '@electron-forge/maker-rpm',
       config: {},
+      platforms: ['linux']
     },
   ],
   plugins: [

@@ -1,33 +1,34 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
-const isDev = require('electron-is-dev');
-const { updateElectronApp } = require('update-electron-app')
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import electronSquirrelStartup from 'electron-squirrel-startup';
+import electronIsDev from 'electron-is-dev';
+import 'update-electron-app'; // Automatically update Electron app
+import { updateElectronApp } from 'update-electron-app';
 
-if (!isDev && require('electron-squirrel-startup')) {
-  updateElectronApp({
-    updateSource: {
-      type: UpdateSourceType.ElectronPublicUpdateService,
-      repo: 'TopMyster/IsleBrowser'
-    },
-    updateInterval: '1 hour',
-  });
+// ES6 equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+if (!electronIsDev) {
+  updateElectronApp()
 }
 
-
-if (require('electron-squirrel-startup')) app.quit();
+// Enable live reload for Electron during development
+if (electronSquirrelStartup) app.quit();
 
 function createWindow () {
   const win = new BrowserWindow({
     width: 1400,
     height: 850,
-    transparent: true,
-    frame: false,
+    transparent: true,  // Temporarily disabled for testing
+    frame: false,       // Temporarily enabled for testing
     show: false, // Don't show until ready
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       webviewTag: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: join(__dirname, 'preload.js')
     }
   });
 
@@ -39,7 +40,7 @@ function createWindow () {
   win.loadFile('Index.html');
   
   // Open DevTools in development
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' || electronIsDev) {
     win.webContents.openDevTools();
   }
 }

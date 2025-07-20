@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A new innovative browser",
   "author": "TopMyster",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/TopMyster/IsleBrowser"
