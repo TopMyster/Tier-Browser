@@ -34,4 +34,3 @@ jobs:
           tag_name: ${{ steps.short-sha.outputs.sha }}
           release_name: Release ${{ github.ref_name }}
           draft: false
-          prerelease: false
