@@ -20,7 +20,12 @@ export default {
     },
     {
       name: '@electron-forge/maker-deb',
-      config: {},
+      config: {
+        options: {
+          maintainer: 'TooMyster',
+          homepage: 'https://github.com/TopMyster/IsleBrowser/releases/tag/Nova1'
+        }
+      },
       platforms: ['linux']
     },
     {

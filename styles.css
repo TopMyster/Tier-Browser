@@ -195,3 +195,22 @@ body {
         height: 65px;
         -webkit-app-region: drag;
     }
+
+    #bookmark{
+    width: 250px;
+    height: 400px;
+    max-height: 80vh;
+    background-color: rgba(255, 255, 255, 0.793);
+    backdrop-filter: blur(3.5px);
+    z-index: 150;
+    border-radius: 20px;
+    position: absolute;
+    bottom: 100px;
+    right: 130px;
+    box-shadow: 2px 2px 20px rgba(206, 206, 206, 0.884);
+    transition: 1s;
+    cursor: default;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+    }

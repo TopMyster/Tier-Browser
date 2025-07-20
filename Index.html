@@ -1,26 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Isle Browser</title>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="styles.css">
+<title>Isle Browser</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <center>
-    <div id="tabbar">
-        <a style="cursor: pointer; top: 5px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="newtab()">+</a>
-        <a style="cursor: pointer;top: 5px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="back()"><</a>
-        <a style="cursor: pointer;top: 5px; position: relative; margin-right: 15px; font-weight: bold; font-size: 20px;"  onclick="forward()">></a>
-        <input id="searchbar" placeholder="Search or enter URL...">
-        <button class="navstuff" id="tabbutton" onmouseenter="toggleTabs()">Tabs</button>
-    </div>
+<center>
+<div id="tabbar">
+<a style="cursor: pointer; top: 5px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="newtab()">+</a>
+<a style="cursor: pointer;top: 5px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="back()"><</a>
+<a style="cursor: pointer;top: 5px; position: relative; margin-right: 15px; font-weight: bold; font-size: 20px;" onclick="forward()">></a>
+<input id="searchbar" placeholder="Search or enter URL...">
+<a onmouseenter="openbookmarks()" onclick="closebookmarks()"> ★</a>
+<button class="navstuff" id="tabbutton" onmouseenter="toggleTabs()">Tabs</button>
+</div>
 </center>
+<div id="bookmarks" style="display:none;">
+<center>
+<input id="bmtext">
+<input id="bmlink">
+<button onclick="addbm()">Add</button>
+</center>
+</div>
+<div id="tabs" style="display:none;">
+<h1>test</h1>
+</div>
 
-    <div id="tabs" style="display:none;">
-        <h1>test</h1>
-    </div>
-
-    <webview id="Browser" src="home.html"></webview>
-    <script src="script.js"></script>
+<webview id="Browser" src="home.html"></webview>
+<script src="script.js"></script>
 </body>
 </html>
