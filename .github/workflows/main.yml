@@ -22,7 +22,7 @@ jobs:
       - name: Publish with Electron Forge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run publish
+        run: npm run forge-publish
       - name: Create GitHub Release
         if: matrix.os == 'ubuntu-latest'
         uses: actions/create-release@v1
