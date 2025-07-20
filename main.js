@@ -1,3 +1,4 @@
+// main.js
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -11,20 +12,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 if (!electronIsDev) {
-  updateElectronApp()
+  updateElectronApp();
 }
 
 // Enable live reload for Electron during development
 if (electronSquirrelStartup) app.quit();
 
 function getIconPath() {
-  if (process.platform === 'win32') {
-    return join(__dirname, 'assets', 'icon.png');
-  } else if (process.platform === 'darwin') {
-    return join(__dirname, 'assets', 'icon.icns');
-  } else {
-    return join(__dirname, 'assets', 'icon.png');
-  }
+  // Use icon.icns for all platforms
+  return join(__dirname, 'assets', 'icon.icns');
 }
 
 function createWindow () {
@@ -34,6 +30,7 @@ function createWindow () {
     transparent: true,  // Temporarily disabled for testing
     frame: false,       // Temporarily enabled for testing
     show: false, // Don't show until ready
+    icon: getIconPath(), // <-- Set the icon here
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
