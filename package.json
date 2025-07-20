@@ -23,6 +23,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
     "@electron-forge/plugin-fuses": "^7.8.1",
     "@electron-forge/publisher-electron-release-server": "^7.8.1",
+    "publish": "electron-forge publish",
     "@electron/fuses": "^1.8.0",
     "electron": "^30.0.0",
     "electron-packager": "^17.1.2"
