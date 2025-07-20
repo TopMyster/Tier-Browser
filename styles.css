@@ -183,7 +183,7 @@ body {
     backdrop-filter: blur(3.5px);
     z-index: 150;
     border-radius: 20px;
-    position: absolute;
+    position: relative;
     text-align: center;
     box-shadow: 2px 2px 20px rgba(206, 206, 206, 0.884);
     transition: 1s;
