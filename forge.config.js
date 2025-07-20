@@ -4,6 +4,9 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 export default {
   packagerConfig: {
     asar: true,
+    name: 'Isle Nova',
+    executableName: 'Isle Nova',
+    icon: './assets/icon', // Electron Forge will automatically choose the right format
   },
   rebuildConfig: {},
   makers: [

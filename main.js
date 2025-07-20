@@ -19,8 +19,14 @@ if (!electronIsDev) {
 if (electronSquirrelStartup) app.quit();
 
 function getIconPath() {
-  // Use icon.icns for all platforms
-  return join(__dirname, 'assets', 'icon.icns');
+  // Use appropriate icon format for each platform
+  if (process.platform === 'win32') {
+    return join(__dirname, 'assets', 'icon.ico'); // Windows prefers .ico
+  } else if (process.platform === 'darwin') {
+    return join(__dirname, 'assets', 'icon.icns'); // macOS uses .icns
+  } else {
+    return join(__dirname, 'assets', 'icon.png'); // Linux uses .png
+  }
 }
 
 function createWindow () {
