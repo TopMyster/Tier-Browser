@@ -393,7 +393,7 @@ const bmText = document.getElementById('bmtext').value;
 const bmLink = document.getElementById('bmlink').value;
 const url = 'https://' + bmLink;
 let newEl = document.createElement('a');
-let btnText = document.createTextNode(bmText + " ");
+let btnText = document.createTextNode("  " + bmText + "  ");
 newEl.appendChild(btnText);
 let bmlink = document.createAttribute('href');
 bmlink.value = url;
