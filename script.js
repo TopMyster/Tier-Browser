@@ -176,26 +176,31 @@ document.getElementById('searchbar').value = tabs[index].url === 'home.html' ? '
 }
 
 function updateTabsUI() {
-const tabsContainer = document.getElementById('tabs');
+    const tabsContainer = document.getElementById('tabs');
+    
+    // Clear existing tabs
+    while (tabsContainer.firstChild) {
+        tabsContainer.removeChild(tabsContainer.firstChild);
+    }
 
+    // Render the current tabs
+    tabs.forEach((tab, index) => {
+        const tabElement = document.createElement('div');
+        tabElement.className = 'tab-item';
+        tabElement.innerHTML = `
+            <div class="tab-content" onclick="switchToTab(${index})">
+                <span class="tab-title">${tab.title}</span>
+                <span class="tab-url">${tab.url}</span>
+            </div>
+            <button class="tab-close" onclick="closeTab(${index})" ${tabs.length <= 1 ? 'disabled' : ''}>×</button>
+        `;
 
-tabs.forEach((tab, index) => {
-const tabElement = document.createElement('div');
-tabElement.className = 'tab-item';
-tabElement.innerHTML = `
-<div class="tab-content" onclick="switchToTab(${index})">
-<span class="tab-title">${tab.title}</span>
-<span class="tab-url">${tab.url}</span>
-</div>
-<button class="tab-close" onclick="closeTab(${index})" ${tabs.length <= 1 ? 'disabled' : ''}>×</button>
-`;
+        if (index === activeTabIndex) {
+            tabElement.classList.add('active-tab');
+        }
 
-if (index === activeTabIndex) {
-tabElement.classList.add('active-tab');
-}
-
-tabsContainer.appendChild(tabElement);
-});
+        tabsContainer.appendChild(tabElement);
+    });
 }
 
 function updateCurrentTabUrl(url) {
