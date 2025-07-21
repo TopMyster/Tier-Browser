@@ -318,6 +318,7 @@ const tabIndex = parseInt(event.key) - 1;
 if (tabIndex < tabs.length) switchToTab(tabIndex);
 }
 
+
 if (event.key === 'Escape') hidTabs();
 });
 
@@ -419,39 +420,39 @@ document.getElementById('chatbtn').addEventListener('click', function() {
     }
 });
 
+// Handle IPC messages from the main process for global keyboard shortcuts
+const { ipcRenderer } = require('electron');
+
+ipcRenderer.on('toggle-chat-panel', () => {
+    const chatContainer = document.getElementById('chatContainer');
+    const webview = document.getElementById('Browser');
+
+    if (chatContainer && webview) {
+        if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
+            chatContainer.style.display = 'block';
+            webview.style.width = 'calc(100% - 400px)';
+            console.log('Chat panel opened via global shortcut');
+        } else {
+            chatContainer.style.display = 'none';
+            webview.style.width = '100%';
+            console.log('Chat panel closed via global shortcut');
+        }
+    }
+});
+
+ipcRenderer.on('toggle-tabbar', () => {
+    const tabbar = document.getElementById('tabbar');
+
+    if (tabbar) {
+        if (tabbar.style.display === 'none' || tabbar.style.display === '') {
+            tabbar.style.display = 'block';
+            console.log('Tabbar shown via global shortcut');
+        } else {
+            tabbar.style.display = 'none';
+            console.log('Tabbar hidden via global shortcut');
+        }
+    }
+});
 
 
- // I didnt code this part
 
-        document.addEventListener('keydown', function(e) {
-            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-
-            // For debugging: log the key and modifiers
-            console.log('Key:', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
-
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
-                e.preventDefault(); // Prevent default browser behavior
-                var chatContainer = document.getElementById('chatContainer');
-                var webview = document.getElementById('Browser');
-                if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
-                    chatContainer.style.display = 'block';
-                    webview.style.width = 'calc(100% - 400px)';
-                } else {
-                    chatContainer.style.display = 'none';
-                    webview.style.width = '100%';
-                }
-            }
-        });
-
-
-       document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-                e.preventDefault(); // Prevent default browser behavior
-                var tabbar = document.getElementById('tabbar');
-                if (tabbar.style.display === 'none' || tabbar.style.display === '') {
-                    tabbar.style.display = 'block';
-                } else {
-                    tabbar.style.display = 'none';
-                }
-            }
-        });

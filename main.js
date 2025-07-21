@@ -1,5 +1,5 @@
 // main.js
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import electronSquirrelStartup from 'electron-squirrel-startup';
@@ -58,7 +58,28 @@ function createWindow () {
   }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  
+  // Register global shortcuts
+  // Cmd+L: Toggle chat panel
+  globalShortcut.register('CommandOrControl+L', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    if (focusedWindow) {
+      console.log('Global Cmd+L shortcut triggered');
+      focusedWindow.webContents.send('toggle-chat-panel');
+    }
+  });
+  
+  // Cmd+K: Toggle tabbar
+  globalShortcut.register('CommandOrControl+K', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    if (focusedWindow) {
+      console.log('Global Cmd+K shortcut triggered');
+      focusedWindow.webContents.send('toggle-tabbar');
+    }
+  });
+});
 
 // IPC handlers for browser functionality
 ipcMain.handle('navigate-to', async (event, url) => {
@@ -83,4 +104,9 @@ ipcMain.handle('show-browserview', async (event, show) => {
 
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('will-quit', () => {
+  // Unregister all shortcuts
+  globalShortcut.unregisterAll();
 });
