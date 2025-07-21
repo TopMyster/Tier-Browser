@@ -48,7 +48,8 @@ tabs: document.getElementById('tabs')
 if (theme === 'dark') {
 elements.body.style.backgroundColor = 'rgba(30, 30, 30, 0.9)';
 elements.body.style.color = 'white';
-if (elements.tabbar) elements.tabbar.style.backgroundColor = 'rgba(40, 40, 40, 0.9)';
+elements.tabbar.style.color = 'white';
+if (elements.tabbar) elements.tabbar.style.backgroundColor = 'rgba(63, 63, 63, 0.9)';
 if (elements.searchbar) {
 elements.searchbar.style.backgroundColor = 'rgba(50, 50, 50, 0.9)';
 elements.searchbar.style.color = 'white';
@@ -176,7 +177,7 @@ document.getElementById('searchbar').value = tabs[index].url === 'home.html' ? '
 
 function updateTabsUI() {
 const tabsContainer = document.getElementById('tabs');
-tabsContainer.innerHTML = '<h2 style="margin-top: 10px;">Open Tabs</h2>';
+
 
 tabs.forEach((tab, index) => {
 const tabElement = document.createElement('div');
@@ -376,14 +377,14 @@ hidTabs();
 });
 });
 
-function openbookmarks() {
-document.getElementById('bookmarks').style.display = 'block'
-}
-
-function closebookmarks() {
-document.getElementById('bookmarks').style.display = 'none'
-}
-
+document.getElementById('bmbtn').addEventListener('click', function() {
+    var bookmark = document.getElementById('bookmarks');
+    if (bookmark.style.display === 'none' || bookmark.style.display === '') {
+        bookmark.style.display = 'block';
+    } else {
+        bookmark.style.display = 'none';
+    }
+});
 function addbm() {
 
 if (!document.getElementById('bmlink') || !document.getElementById('bmtext')) {
@@ -418,6 +419,8 @@ document.getElementById('chatbtn').addEventListener('click', function() {
     }
 });
 
+
+
  // I didnt code this part
 
         document.addEventListener('keydown', function(e) {
@@ -436,6 +439,19 @@ document.getElementById('chatbtn').addEventListener('click', function() {
                 } else {
                     chatContainer.style.display = 'none';
                     webview.style.width = '100%';
+                }
+            }
+        });
+
+
+       document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault(); // Prevent default browser behavior
+                var tabbar = document.getElementById('tabbar');
+                if (tabbar.style.display === 'none' || tabbar.style.display === '') {
+                    tabbar.style.display = 'block';
+                } else {
+                    tabbar.style.display = 'none';
                 }
             }
         });

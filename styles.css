@@ -25,6 +25,7 @@ body {
     transition: .2s;
     transform: translateX(-50%);
     left: 50%;
+    display: block;
 }
 
 #searchbar {
@@ -217,6 +218,7 @@ body {
     padding: 20px;
     box-sizing: border-box;
     text-decoration: none;
+    display: none;
     }
 
     a {
