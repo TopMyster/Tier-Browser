@@ -2,7 +2,9 @@ Isle Browser Nova is the non vibe coded version of the browser. It is better des
 
 Screenshots (For a more news subsribe to https://www.youtube.com/@Islebrowser)
 
-<img width="1512" height="948" alt="Screenshot 2025-07-19 at 6 00 35 PM" src="https://github.com/user-attachments/assets/2737666f-47b8-4044-8dd9-afd7e88a4489" />
+<img width="1512" height="948" alt="Screenshot 2025-07-21 at 11 24 15 AM" src="https://github.com/user-attachments/assets/ff0ec6ea-9e48-4636-995c-54f0995b9723" />
+
+<img width="1512" height="948" alt="Screenshot 2025-07-21 at 11 25 09 AM" src="https://github.com/user-attachments/assets/956f7dbe-0317-4179-87ab-7559055d8b2c" />
 
 <img width="1512" height="948" alt="Screenshot 2025-07-19 at 6 01 47 PM" src="https://github.com/user-attachments/assets/3d845443-5220-411f-aa19-9051122205cc" />
 
