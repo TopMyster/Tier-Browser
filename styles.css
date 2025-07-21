@@ -21,7 +21,7 @@ body {
     border-radius: 18px;
     margin-bottom: 5px;
     bottom: 5px;
-    box-shadow: 2px 2px 10px rgba(206, 206, 206, 0.884);
+    box-shadow: 2px 2px 20px rgba(206, 206, 206, 0.884);
     transition: .2s;
     transform: translateX(-50%);
     left: 50%;
@@ -53,7 +53,7 @@ body {
     position: absolute;
     bottom: 100px;
     right: 100px;
-    box-shadow: 2px 2px 10px rgba(206, 206, 206, 0.884);
+    box-shadow: 2px 2px 20px rgba(206, 206, 206, 0.884);
     transition: 1s;
     cursor: default;
     overflow-y: auto;
@@ -161,25 +161,18 @@ body {
 }
 
  
-    #main-content {
-        display: flex;
-        width: 100vw;
-        height: 100vh;
-    }
-    
     #Browser {
-        flex: 1;
-        height: 100vh;
-        border: none;
-        z-index: 1;
-        transition: width 0.3s ease;
-    }
-    
-    #main-content.chat-open #Browser {
-        width: 70%;
-        flex: 0 0 70%;
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    z-index: 1;
+    transition: width 0.3s ease;
     }
 
+ 
     input:focus {
   outline: none;
     }
@@ -262,24 +255,9 @@ body {
         border-radius: 5px;
     }
 
-    #chatbasecontainer {
-        display: none;
-        width: 30%;
-        height: 100vh;
-        border-left: 1px solid rgba(0, 0, 0, 0.1);
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 0 0 0 20px;
-        flex-shrink: 0;
-    }
-    
-    #main-content.chat-open #chatbasecontainer {
-        display: block;
-    }
-
-    #chatbtn {
-    position: relative;
-    top: 9px;
-    margin-right: 5px;
-        
+    #chatContainer{
+        position: absolute;
+        width: 400px;
+        height: 850px;
+        right: 0px;
     }
