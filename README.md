@@ -6,8 +6,9 @@ Screenshots (For a more news subsribe to https://www.youtube.com/@Islebrowser)
 
 <img width="1512" height="948" alt="Screenshot 2025-07-21 at 11 25 09 AM" src="https://github.com/user-attachments/assets/956f7dbe-0317-4179-87ab-7559055d8b2c" />
 
-<img width="1512" height="948" alt="Screenshot 2025-07-19 at 6 01 47 PM" src="https://github.com/user-attachments/assets/3d845443-5220-411f-aa19-9051122205cc" />
+<img width="1512" height="948" alt="Screenshot 2025-07-21 at 11 27 11 AM" src="https://github.com/user-attachments/assets/016188d6-3b96-4f6f-aa3c-8cfc65d9ced5" />
 
-<img width="1512" height="948" alt="Screenshot 2025-07-19 at 6 00 58 PM" src="https://github.com/user-attachments/assets/bb9b424a-867e-45e1-aaf9-2149ccaa76da" />
+<img width="1512" height="948" alt="Screenshot 2025-07-21 at 11 27 54 AM" src="https://github.com/user-attachments/assets/6d64147c-8e32-4be7-a7e6-5d8da65e2ab8" />
+
 
 
