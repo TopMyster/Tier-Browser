@@ -407,6 +407,35 @@ document.getElementById('bookmarks').appendChild(newEl);
 }
 
 document.getElementById('chatbtn').addEventListener('click', function() {
-    var mainContent = document.getElementById('main-content');
-    mainContent.classList.toggle('chat-open');
+    var chatContainer = document.getElementById('chatContainer');
+    var webview = document.getElementById('Browser');
+    if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
+        chatContainer.style.display = 'block';
+        webview.style.width = 'calc(100% - 400px)';
+    } else {
+        chatContainer.style.display = 'none';
+        webview.style.width = '100%';
+    }
 });
+
+ // I didnt code this part
+
+        document.addEventListener('keydown', function(e) {
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+            // For debugging: log the key and modifiers
+            console.log('Key:', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey);
+
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+                e.preventDefault(); // Prevent default browser behavior
+                var chatContainer = document.getElementById('chatContainer');
+                var webview = document.getElementById('Browser');
+                if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
+                    chatContainer.style.display = 'block';
+                    webview.style.width = 'calc(100% - 400px)';
+                } else {
+                    chatContainer.style.display = 'none';
+                    webview.style.width = '100%';
+                }
+            }
+        });
