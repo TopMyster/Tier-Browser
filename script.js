@@ -405,3 +405,8 @@ newEl.onclick = function(e) {
 document.getElementById('bookmarks').appendChild(newEl);
 
 }
+
+document.getElementById('chatbtn').addEventListener('click', function() {
+    var mainContent = document.getElementById('main-content');
+    mainContent.classList.toggle('chat-open');
+});

@@ -11,30 +11,8 @@ export default {
   rebuildConfig: {},
   makers: [
     {
-      name: '@electron-forge/maker-squirrel',
-      config: {
-        name: 'isle-nova'
-      },
-      platforms: ['win32']
-    },
-    {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin', 'win32'],
-    },
-    {
-      name: '@electron-forge/maker-deb',
-      config: {
-        options: {
-          maintainer: 'TooMyster',
-          homepage: 'https://github.com/TopMyster/IsleBrowser/releases/tag/Nova1'
-        }
-      },
-      platforms: ['linux']
-    },
-    {
-      name: '@electron-forge/maker-rpm',
-      config: {},
-      platforms: ['linux']
+      platforms: ['darwin', 'win32', 'linux'],
     },
   ],
   plugins: [
