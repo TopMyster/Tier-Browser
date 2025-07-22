@@ -26,6 +26,7 @@ body {
     transform: translateX(-50%);
     left: 50%;
     display: block;
+    user-select: none;
 }
 
 #searchbar {
@@ -37,14 +38,13 @@ body {
     position: relative;
     transition: .2s;
     cursor: text;
-    box-shadow: rgb(103, 245, 198);
     border: none;
     top: 5px;
 }
 
 #tabs{
     display: none;
-    width: 500px;
+    width: 400px;
     height: 400px;
     max-height: 80vh;
     background-color: rgba(255, 255, 255, 0.793);
@@ -194,36 +194,25 @@ body {
     }
 
     #drag {
-        background-color: #33333300;
-        width: 1500px;
-        height: 65px;
+        background-color: #ffffff00;
+        width: 200px;
+        height: 10px;
+        left: 100%;
+        transform: translateX(-90%);
         -webkit-app-region: drag;
+        z-index: 3000;
+        position: absolute;
     }
 
-    #bookmark{
-    width: 250px;
-    height: 400px;
-    max-height: 80vh;
-    background-color: rgba(255, 255, 255, 0.793);
-    backdrop-filter: blur(3.5px);
-    z-index: 150;
-    border-radius: 20px;
-    position: absolute;
-    bottom: 100px;
-    right: 130px;
-    box-shadow: 2px 2px 20px rgba(206, 206, 206, 0.884);
-    transition: 1s;
-    cursor: default;
-    overflow-y: auto;
-    padding: 20px;
-    box-sizing: border-box;
-    text-decoration: none;
-    display: none;
+    #bookmarks{
+        display: none;
     }
 
     a {
         text-decoration: none;
         color: #333;
+        font-weight: bold;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
 
     #bmtext {
