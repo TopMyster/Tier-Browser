@@ -36,7 +36,10 @@ function createWindow () {
     transparent: true,  // Temporarily disabled for testing
     frame: false,       // Temporarily enabled for testing
     show: false, // Don't show until ready
-    icon: getIconPath(), // <-- Set the icon here
+    icon: getIconPath(),
+    vibrancy: 'ultra-dark',
+    blur: 50,
+    backgroundColor: 'rgba(211, 211, 211, 0.65)', 
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -51,11 +54,6 @@ function createWindow () {
   });
 
   win.loadFile('Index.html');
-  
-  // Open DevTools in development
-  if (process.env.NODE_ENV === 'development' || electronIsDev) {
-    win.webContents.openDevTools();
-  }
 }
 
 app.whenReady().then(() => {
@@ -98,7 +96,6 @@ ipcMain.handle('go-forward', async (event) => {
 });
 
 ipcMain.handle('show-browserview', async (event, show) => {
-  // Handle browser view visibility
   console.log('Show browser view:', show);
 });
 
