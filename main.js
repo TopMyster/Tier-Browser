@@ -53,7 +53,7 @@ function createWindow () {
     win.show();
   });
 
-  win.loadFile('Index.html');
+  win.loadFile('index.html');
 }
 
 app.whenReady().then(() => {

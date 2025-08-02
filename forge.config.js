@@ -7,35 +7,71 @@ export default {
     name: 'Isle Nova',
     executableName: 'Isle Nova',
     icon: './assets/icon', // Electron Forge will automatically choose the right format
+    appBundleId: 'com.topmyster.islenovabrowser',
+    appCategoryType: 'public.app-category.productivity',
+    osxSign: false, // Disable signing for now
+    osxNotarize: false, // Disable notarization for now
+    win32metadata: {
+      CompanyName: 'TopMyster',
+      FileDescription: 'Isle Nova Browser',
+      OriginalFilename: 'Isle Nova.exe',
+      ProductName: 'Isle Nova',
+      InternalName: 'Isle Nova'
+    }
   },
   rebuildConfig: {},
   makers: [
+    // Windows x64
     {
-      name: '@electron-forge/maker-squirrel',
+      name: '@electron-forge/maker-zip',
       config: {
-        name: 'isle-nova'
+        name: 'Isle.Nova-win32-x64'
       },
       platforms: ['win32']
     },
+    // Windows Squirrel installer
+    {
+      name: '@electron-forge/maker-squirrel',
+      config: {
+        name: 'isle-nova',
+        setupExe: 'Isle-Nova-Setup.exe',
+        setupIcon: './assets/icon.ico'
+      },
+      platforms: ['win32']
+    },
+    // macOS ZIP files
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin', 'win32'],
+      config: {
+        name: 'Isle.Nova-macOS'
+      },
+      platforms: ['darwin']
     },
+    // Linux DEB package
     {
       name: '@electron-forge/maker-deb',
       config: {
+        name: 'isle-nova',
         options: {
-          maintainer: 'TooMyster',
-          homepage: 'https://github.com/TopMyster/IsleBrowser/releases/tag/Nova1'
+          maintainer: 'TopMyster',
+          homepage: 'https://github.com/TopMyster/IsleBrowser',
+          description: 'A modern, innovative browser built with Electron',
+          categories: ['Network', 'WebBrowser'],
+          section: 'web',
+          priority: 'optional',
+          depends: ['libgtk-3-0', 'libxss1', 'libgconf-2-4', 'libnss3']
         }
       },
       platforms: ['linux']
     },
+    // Linux ZIP
     {
-      name: '@electron-forge/maker-rpm',
-      config: {},
+      name: '@electron-forge/maker-zip',
+      config: {
+        name: 'Isle-nova-linux-x64'
+      },
       platforms: ['linux']
-    },
+    }
   ],
   plugins: [
     {
