@@ -9,9 +9,9 @@
 <center>
   <div id="drag"></div>
 <div id="tabbar">
-<a style="cursor: pointer; top: 5px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="newtab()">+</a>
-<a style="cursor: pointer;top: 5px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="back()"><</a>
-<a style="cursor: pointer;top: 5px; position: relative; margin-right: 15px; font-weight: bold; font-size: 20px;" onclick="forward()">></a>
+<a style="cursor: pointer; top: 6px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="newtab()">+</a>
+<a style="cursor: pointer;top: 6px; position: relative; margin-right: 12px; font-weight: bold; font-size: 20px;" onclick="back()"><</a>
+<a style="cursor: pointer;top: 6px; position: relative; margin-right: 15px; font-weight: bold; font-size: 20px;" onclick="forward()">></a>
 <input id="searchbar" placeholder="Search or enter URL...">
 <img src="chat.png" width="20px" id="chatbtn" style="cursor: pointer; margin-right: 5px; top: 8px; position: relative;" >
 <a id="bmbtn" style="margin-right: 5px; top: 5px; position: relative; cursor: pointer;"> ★</a>
@@ -29,9 +29,9 @@
 <div id="tabs" style="display:none;">
 </div>
 
-<div id="browserContainer" style="display: flex; width: 100%; height: 100vh;">
-  <webview id="Browser" src="home.html" style="width: 100%; height: 100%;"></webview>
-  <div id="chatContainer" style="display: none; width: 400px; height: 100vh; z-index: 300;">
+<div id="browserContainer" style="display: flex; width: 100%; height: 100vh; transition: .4s;">
+  <webview id="Browser" src="home.html" style="width: 100%; height: 100%; transition: .4s;"></webview>
+  <div id="chatContainer" style="display: none; width: 400px; height: 100vh; z-index: 300; transition: .4s;">
 
     <iframe 
       src="https://cdn.botpress.cloud/webchat/v3.2/shareable.html?configUrl=https://files.bpcontent.cloud/2025/07/21/19/20250721195356-NX7X7607.json" 

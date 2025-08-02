@@ -11,14 +11,14 @@ body {
 
 
 #tabbar {
-    width: 480px;
+    width: 470px;
     height: 45px;
     background-color: rgba(255, 255, 255, 0.655);
     backdrop-filter: blur(2.5px);
     text-align: center;
     z-index: 100;
     position: absolute;
-    border-radius: 21px;
+    border-radius: 20px;
     margin-bottom: 5px;
     bottom: 5px;
     box-shadow: 2px 2px 20px rgba(206, 206, 206, 0.632);
