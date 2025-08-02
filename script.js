@@ -414,35 +414,30 @@ document.getElementById('bookmarks').appendChild(newEl);
 }
 
 document.getElementById('chatbtn').addEventListener('click', function() {
+    toggleChatPanel();
+});
+
+function toggleChatPanel() {
     var chatContainer = document.getElementById('chatContainer');
     var webview = document.getElementById('Browser');
-    if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
-        chatContainer.style.display = 'block';
-        webview.style.width = 'calc(100% - 400px)';
-    } else {
-        chatContainer.style.display = 'none';
+    
+    if (chatContainer.classList.contains('show')) {
+        // Close chat panel
+        chatContainer.classList.remove('show');
         webview.style.width = '100%';
+    } else {
+        // Open chat panel
+        chatContainer.classList.add('show');
+        webview.style.width = 'calc(100% - 400px)';
     }
-});
+}
 
 // Handle IPC messages from the main process for global keyboard shortcuts
 const { ipcRenderer } = require('electron');
 
 ipcRenderer.on('toggle-chat-panel', () => {
-    const chatContainer = document.getElementById('chatContainer');
-    const webview = document.getElementById('Browser');
-
-    if (chatContainer && webview) {
-        if (chatContainer.style.display === 'none' || chatContainer.style.display === '') {
-            chatContainer.style.display = 'block';
-            webview.style.width = 'calc(100% - 400px)';
-            console.log('Chat panel opened via global shortcut');
-        } else {
-            chatContainer.style.display = 'none';
-            webview.style.width = '100%';
-            console.log('Chat panel closed via global shortcut');
-        }
-    }
+    console.log('Chat panel toggled via global shortcut');
+    toggleChatPanel();
 });
 
 ipcRenderer.on('toggle-tabbar', () => {
