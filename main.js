@@ -1,21 +1,29 @@
-import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import electronSquirrelStartup from 'electron-squirrel-startup';
-import electronIsDev from 'electron-is-dev';
-import 'update-electron-app'; // Automatically update Electron app
-import { updateElectronApp } from 'update-electron-app';
+const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+const { join } = require('path');
+const { updateElectronApp } = require('update-electron-app');
 
-// ES6 equivalent of __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// __dirname is available in CommonJS
+// Check if we're in development mode
+const isDev = process.env.NODE_ENV === 'development' || process.defaultApp || /[\\|/]electron-prebuilt[\\|/]/.test(process.execPath) || /[\\|/]electron[\\|/]/.test(process.execPath);
 
-if (!electronIsDev) {
+if (!isDev) {
   updateElectronApp();
 }
 
-// Enable live reload for Electron during development
-if (electronSquirrelStartup) app.quit();
+// Handle Squirrel startup events on Windows
+if (process.platform === 'win32') {
+  const squirrelCommand = process.argv[1];
+  if (squirrelCommand) {
+    switch (squirrelCommand) {
+      case '--squirrel-install':
+      case '--squirrel-updated':
+      case '--squirrel-uninstall':
+      case '--squirrel-obsolete':
+        app.quit();
+        return;
+    }
+  }
+}
 
 function getIconPath() {
   // Use appropriate icon format for each platform

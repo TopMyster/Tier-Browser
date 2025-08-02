@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A new innovative browser",
   "author": "TopMyster",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/TopMyster/IsleBrowser"
@@ -15,7 +14,18 @@
     "make": "electron-forge make",
     "forge-publish": "electron-forge publish",
     "build-all": "node build-all.js",
-    "clean": "rm -rf out dist"
+    "build-optimized": "node build-optimized.js",
+    "build-windows-200mb": "node build-windows-200mb.cjs",
+    "build-windows-simple": "node build-windows-simple.cjs",
+    "build-debian-200mb": "node build-debian-200mb.cjs",
+    "build-macos-200mb": "node build-macos-200mb.cjs",
+    "build-all-functional": "node build-all-functional.cjs",
+    "build-all-200mb": "node build-all-optimized.js",
+    "build-minimal": "node build-minimal.js",
+    "build-cross-platform": "node build-cross-platform.js",
+    "build-simple": "node build-simple.js",
+    "build-all-platforms-200mb": "node build-all-platforms.js",
+    "clean": "rm -rf out dist temp-build temp-optimize dist-minimal dist-optimized temp-cross-build temp-simple dist-simple electron-builder.json"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.1",
@@ -28,11 +38,11 @@
     "@electron-forge/publisher-electron-release-server": "^7.8.1",
     "@electron/fuses": "^1.8.0",
     "electron": "^30.0.0",
+    "electron-builder": "^26.0.12",
     "electron-packager": "^17.1.2"
   },
   "dependencies": {
     "electron-is-dev": "^3.0.1",
-    "electron-squirrel-startup": "^1.0.1",
     "update-electron-app": "^3.1.1"
   }
 }
