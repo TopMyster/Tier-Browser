@@ -38,37 +38,32 @@ switchTheme(browserSettings.theme);
 }
 
 function switchTheme(theme) {
-const elements = {
-body: document.body,
-tabbar: document.getElementById('tabbar'),
-searchbar: document.getElementById('searchbar'),
-tabs: document.getElementById('tabs')
-};
+const body = document.body;
 
 if (theme === 'dark') {
-elements.body.style.backgroundColor = 'rgba(30, 30, 30, 0.9)';
-elements.body.style.color = 'white';
-elements.tabbar.style.color = 'white';
-if (elements.tabbar) elements.tabbar.style.backgroundColor = 'rgba(63, 63, 63, 0.9)';
-if (elements.searchbar) {
-elements.searchbar.style.backgroundColor = 'rgba(50, 50, 50, 0.9)';
-elements.searchbar.style.color = 'white';
+// Add dark theme class to body
+body.classList.add('dark-theme');
+body.classList.remove('light-theme');
+} else {
+// Add light theme class to body (or remove dark theme class)
+body.classList.remove('dark-theme');
+body.classList.add('light-theme');
 }
-if (elements.tabs) {
-elements.tabs.style.backgroundColor = 'rgba(40, 40, 40, 0.9)';
-elements.tabs.style.color = 'white';
+
+// Handle special case for search bar placeholder and chat command color
+const searchbar = document.getElementById('searchbar');
+if (searchbar) {
+const currentValue = searchbar.value;
+if (currentValue.includes('/ch')) {
+// Keep the special chat command color override
+if (theme === 'dark') {
+searchbar.style.color = 'rgba(0, 200, 120, 1)';
+} else {
+searchbar.style.color = 'rgba(0, 124, 82, 1)';
 }
 } else {
-elements.body.style.backgroundColor = 'rgba(255, 255, 255, 0.509)';
-elements.body.style.color = 'black';
-if (elements.tabbar) elements.tabbar.style.backgroundColor = 'rgba(255, 255, 255, 0.793)';
-if (elements.searchbar) {
-elements.searchbar.style.backgroundColor = 'rgba(255, 255, 255, 0.916)';
-elements.searchbar.style.color = 'black';
-}
-if (elements.tabs) {
-elements.tabs.style.backgroundColor = 'rgba(255, 255, 255, 0.793)';
-elements.tabs.style.color = 'black';
+// Remove any inline color to let CSS variables take over
+searchbar.style.color = '';
 }
 }
 }
@@ -227,10 +222,18 @@ return 'New Tab';
 
 document.getElementById('searchbar').addEventListener('input', function(){
 let search = document.getElementById('searchbar').value;
+const isDark = document.body.classList.contains('dark-theme');
+
 if (search.includes('/ch')) {
-document.getElementById('searchbar').style.color = 'rgba(0, 124, 82, 1)';
+// Special color for chat command
+if (isDark) {
+document.getElementById('searchbar').style.color = 'rgba(0, 200, 120, 1)';
 } else {
-document.getElementById('searchbar').style.color = 'black';
+document.getElementById('searchbar').style.color = 'rgba(0, 124, 82, 1)';
+}
+} else {
+// Remove inline style to let CSS variables take over
+document.getElementById('searchbar').style.color = '';
 }
 });
 
