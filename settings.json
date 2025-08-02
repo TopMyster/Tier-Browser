@@ -2,5 +2,6 @@
   "searchEngine": "Bing",
   "theme": "light",
   "homepage": "home.html",
+  "chatbot": "default",
   "version": "1.0.0"
 }

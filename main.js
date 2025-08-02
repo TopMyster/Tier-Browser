@@ -1,4 +1,3 @@
-// main.js
 import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

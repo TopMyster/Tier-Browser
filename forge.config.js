@@ -6,11 +6,11 @@ export default {
     asar: true,
     name: 'Isle Nova',
     executableName: 'Isle Nova',
-    icon: './assets/icon', // Electron Forge will automatically choose the right format
+    icon: './assets/icon',
     appBundleId: 'com.topmyster.islenovabrowser',
     appCategoryType: 'public.app-category.productivity',
-    osxSign: false, // Disable signing for now
-    osxNotarize: false, // Disable notarization for now
+    osxSign: false, 
+    osxNotarize: false, 
     win32metadata: {
       CompanyName: 'TopMyster',
       FileDescription: 'Isle Nova Browser',
@@ -78,8 +78,7 @@ export default {
       name: '@electron-forge/plugin-auto-unpack-natives',
       config: {},
     },
-    // Fuses are used to enable/disable various Electron functionality
-    // at package time, before code signing the application
+   
     new FusesPlugin({
       version: FuseVersion.V1,
       [FuseV1Options.RunAsNode]: false,

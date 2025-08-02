@@ -21,11 +21,19 @@
                 <option value="light">Light Mode</option>
                 <option value="dark">Dark Mode</option>
             </select>
+            <br><br>
+            <label for="chatbotSelect">Chatbot:</label>
+            <select id="chatbotSelect" style="margin-left: 10px; padding: 5px; border-radius: 5px;">
+                <option value="default">Default</option>
+                <option value="chatgpt">ChatGPT</option>
+                <option value="gemini">Gemini</option>
+                <option value="perplexity">Perplexity</option>
+            </select>
         </div>
         <div id="content">
             <h1 style="font-size: 50px;">Isle</h1>
             <p style="font-size: 18px;">The browser you deserve</p>
-           <a style="position: absolute; margin-top: 5px; font-size: 50px;" onclick="showSettings()">⚙︎</a>
+           <a style="position: absolute; margin-top: 5px; font-size: 50px; left: 50%; transform: translateX(-50%);" onclick="showSettings()">⚙︎</a>
 
         </div>
     </div>
@@ -37,6 +45,7 @@
                 searchEngine: 'Bing',
                 theme: 'light',
                 homepage: 'home.html',
+                chatbot: 'default',
                 version: '1.0.0'
             };
             
@@ -81,6 +90,26 @@
                         window.parent.postMessage({
                             type: 'THEME_CHANGED',
                             theme: this.value
+                        }, '*');
+                    }
+                });
+            }
+            
+            const chatbotSelect = document.getElementById('chatbotSelect');
+            if (chatbotSelect) {
+                chatbotSelect.value = settings.chatbot;
+                
+                chatbotSelect.addEventListener('change', function() {
+                    settings.chatbot = this.value;
+                    localStorage.setItem('browserSettings', JSON.stringify(settings));
+                    
+                    this.style.backgroundColor = '#90EE90';
+                    setTimeout(() => this.style.backgroundColor = '', 500);
+                    
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'CHATBOT_CHANGED',
+                            chatbot: this.value
                         }, '*');
                     }
                 });

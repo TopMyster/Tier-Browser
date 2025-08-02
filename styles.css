@@ -1,6 +1,6 @@
 :root {
     /* Light theme variables */
-    --bg-primary: rgba(244, 244, 244, 0.316);
+    --bg-primary: rgba(255, 255, 255, 0.563);
     --bg-secondary: rgba(255, 255, 255, 0.655);
     --bg-tertiary: rgba(255, 255, 255, 0.649);
     --bg-input: rgba(237, 237, 237, 0.411);
@@ -85,8 +85,8 @@ body {
     background-color: var(--bg-secondary);
     backdrop-filter: blur(2.5px);
     text-align: center;
-    z-index: 100;
-    position: absolute;
+    z-index: 200;
+    position: fixed;
     border-radius: 20px;
     margin-bottom: 5px;
     bottom: 5px;
@@ -288,7 +288,7 @@ body {
         background-color: var(--bg-secondary);
         color: var(--text-primary);
         border-radius: 10px;
-        padding: 10px;
+        padding: 5px;
         box-shadow: var(--shadow-medium);
     }
 
@@ -335,7 +335,7 @@ body {
         color: var(--text-primary);
         border: none;
         border-radius: 5px;
-        padding: 5px 10px;
+        padding: 2px 7px;
         cursor: pointer;
         transition: all 0.2s ease;
     }

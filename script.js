@@ -4,6 +4,7 @@ let browserSettings = {
 searchEngine: "Bing",
 theme: "light",
 homepage: "home.html",
+chatbot: "default",
 version: "1.0.0"
 };
 
@@ -35,6 +36,7 @@ function applyUserSettings() {
 currentEngine = browserSettings.searchEngine;
 updateSearchEngine();
 switchTheme(browserSettings.theme);
+applyChatbotSettings();
 }
 
 function switchTheme(theme) {
@@ -109,6 +111,50 @@ if (themeSelect) {
 themeSelect.value = browserSettings.theme;
 themeSelect.addEventListener('change', function() {
 changeTheme(this.value);
+});
+}
+}
+
+function changeChatbot(chatbotType) {
+browserSettings.chatbot = chatbotType;
+applyChatbotSettings();
+saveUserSettings();
+}
+
+function applyChatbotSettings() {
+const chatContainer = document.getElementById('chatContainer');
+if (!chatContainer) return;
+
+chatContainer.innerHTML = '';
+
+const chatWebview = document.createElement('webview');
+chatWebview.style.width = '100%';
+chatWebview.style.height = '100%';
+chatWebview.style.border = 'none';
+
+if (browserSettings.chatbot === 'chatgpt') {
+
+chatWebview.src = 'https://chatgpt.com';
+} else if (browserSettings.chatbot === 'gemini') {
+
+chatWebview.src = 'https://gemini.google.com';
+} else if (browserSettings.chatbot === 'perplexity') {
+
+chatWebview.src = 'https://www.perplexity.ai';
+} else {
+
+chatWebview.src = 'https://cdn.botpress.cloud/webchat/v3.2/shareable.html?configUrl=https://files.bpcontent.cloud/2025/07/21/19/20250721195356-NX7X7607.json';
+}
+
+chatContainer.appendChild(chatWebview);
+}
+
+function setupChatbotSelector() {
+const chatbotSelect = document.getElementById('chatbotSelect');
+if (chatbotSelect) {
+chatbotSelect.value = browserSettings.chatbot;
+chatbotSelect.addEventListener('change', function() {
+changeChatbot(this.value);
 });
 }
 }
@@ -342,6 +388,9 @@ changeSearchEngine(newSettings.searchEngine);
 if (newSettings.theme !== browserSettings.theme) {
 changeTheme(newSettings.theme);
 }
+if (newSettings.chatbot !== browserSettings.chatbot) {
+changeChatbot(newSettings.chatbot);
+}
 lastSettings = saved;
 } catch (error) {
 console.log('Settings sync error:', error);
@@ -356,6 +405,9 @@ changeSearchEngine(event.data.engine);
 if (event.data?.type === 'THEME_CHANGED') {
 changeTheme(event.data.theme);
 }
+if (event.data?.type === 'CHATBOT_CHANGED') {
+changeChatbot(event.data.chatbot);
+}
 });
 
 window.addEventListener('DOMContentLoaded', function() {
@@ -363,6 +415,7 @@ loadUserSettings();
 initTabs();
 setupEngineSelector();
 setupThemeSelector();
+setupChatbotSelector();
 
 const webview = document.getElementById('Browser');
 webview.addEventListener('did-navigate', (event) => updateCurrentTabUrl(event.url));
