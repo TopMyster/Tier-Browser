@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, Menu, dialog, shell } = require('electron');
 const { join } = require('path');
+const { writeFileSync, readFileSync } = require('fs');
 const { updateElectronApp } = require('update-electron-app');
 
 // __dirname is available in CommonJS
@@ -105,6 +106,60 @@ ipcMain.handle('go-forward', async (event) => {
 ipcMain.handle('show-browserview', async (event, show) => {
   console.log('Show browser view:', show);
 });
+
+// Global variable to store context menu info
+let contextMenuInfo = { linkURL: '', srcURL: '', selectionText: '' };
+
+// Session persistence handlers
+ipcMain.handle('save-browser-state', async (event, state) => {
+  try {
+    const sessionPath = join(__dirname, 'session.json');
+    writeFileSync(sessionPath, JSON.stringify(state, null, 2));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save session:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('load-browser-state', async (event) => {
+  try {
+    const sessionPath = join(__dirname, 'session.json');
+    const data = readFileSync(sessionPath, 'utf8');
+    return { success: true, data: JSON.parse(data) };
+  } catch (error) {
+    console.log('No session file found or failed to load:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+// Webview reload handler
+ipcMain.on('reload-webview', (event) => {
+  event.sender.send('reload-webview-response');
+});
+
+// Function to create new browser window
+function createNewBrowserWindow(url) {
+  const newWin = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    icon: getIconPath(),
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      webviewTag: true,
+      preload: join(__dirname, 'preload.js')
+    }
+  });
+  
+  newWin.loadFile('index.html');
+  
+  if (url) {
+    newWin.webContents.once('dom-ready', () => {
+      newWin.webContents.send('navigate-to-url', url);
+    });
+  }
+}
 
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();

@@ -372,6 +372,23 @@ const tabIndex = parseInt(event.key) - 1;
 if (tabIndex < tabs.length) switchToTab(tabIndex);
 }
 
+// Add F5 and Cmd+R for webview reload
+if (event.key === 'F5' || (isCmd && event.key === 'r')) {
+event.preventDefault();
+reloadWebview();
+}
+
+// Add Cmd+, to go to home
+if (isCmd && event.key === ',') {
+event.preventDefault();
+goToHome();
+}
+
+// Add Cmd+Shift+C to test context menu
+if (isCmd && event.shiftKey && event.key === 'C') {
+event.preventDefault();
+showSimpleContextMenu(window.innerWidth / 2, window.innerHeight / 2);
+}
 
 if (event.key === 'Escape') hidTabs();
 });
@@ -408,24 +425,82 @@ changeTheme(event.data.theme);
 if (event.data?.type === 'CHATBOT_CHANGED') {
 changeChatbot(event.data.chatbot);
 }
+// Handle context menu actions from webview
+if (event.data?.type === 'CONTEXT_MENU_ACTION') {
+    const { action, url } = event.data;
+    switch (action) {
+        case 'new-tab':
+            if (url) {
+                createNewTab(url, getPageTitle(url));
+            }
+            break;
+        case 'new-window':
+            if (url && window.electronAPI?.openNewWindow) {
+                window.electronAPI.openNewWindow(url);
+            } else if (url) {
+                // Fallback: open in new tab if new window API not available
+                createNewTab(url, getPageTitle(url));
+            }
+            break;
+        case 'inspect':
+            // Open dev tools for the webview
+            const webview = document.getElementById('Browser');
+            if (webview && webview.openDevTools) {
+                webview.openDevTools();
+            }
+            break;
+        case 'save-as':
+            if (url) {
+                // Create a temporary link to trigger download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = url.split('/').pop() || 'download';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            break;
+    }
+}
 });
 
 window.addEventListener('DOMContentLoaded', function() {
 loadUserSettings();
-initTabs();
+
+// Load saved session or create initial tab
+setTimeout(() => {
+    loadBrowserSession();
+    // If no session was loaded, create initial tab
+    if (tabs.length === 0) {
+        initTabs();
+    }
+}, 100);
+
 setupEngineSelector();
 setupThemeSelector();
 setupChatbotSelector();
 
 const webview = document.getElementById('Browser');
-webview.addEventListener('did-navigate', (event) => updateCurrentTabUrl(event.url));
-webview.addEventListener('did-navigate-in-page', (event) => updateCurrentTabUrl(event.url));
+webview.addEventListener('did-navigate', (event) => {
+    updateCurrentTabUrl(event.url);
+    // Re-setup context menu after navigation
+    setTimeout(() => setupWebviewContextMenu(), 1000);
+});
+webview.addEventListener('did-navigate-in-page', (event) => {
+    updateCurrentTabUrl(event.url);
+    // Re-setup context menu after in-page navigation
+    setTimeout(() => setupWebviewContextMenu(), 1000);
+});
 
 webview.addEventListener('dom-ready', function() {
 setTimeout(() => {
 setupEngineSelector();
+setupWebviewContextMenu(); // Setup context menu when DOM is ready
 }, 500);
 });
+
+// Setup context menu for webview
+setupWebviewContextMenu();
 
 document.addEventListener('click', function(event) {
 const tabsElement = document.getElementById('tabs');
@@ -436,6 +511,22 @@ if (tabsElement.style.display === 'block') {
 hidTabs();
 }
 }
+});
+
+// Add global right-click listener
+document.addEventListener('contextmenu', function(event) {
+    console.log('Global right-click detected at:', event.clientX, event.clientY);
+    // Check if the right-click is on the webview or inside the browser area
+    const webview = document.getElementById('Browser');
+    const browserContainer = document.getElementById('browserContainer');
+    
+    if (webview && (event.target === webview || browserContainer.contains(event.target))) {
+        event.preventDefault();
+        console.log('Showing context menu for webview area at:', event.clientX, event.clientY);
+        
+        // Use the exact mouse position
+        showWorkingContextMenu(event.clientX, event.clientY, webview);
+    }
 });
 });
 
@@ -508,6 +599,1161 @@ ipcRenderer.on('toggle-tabbar', () => {
             console.log('Tabbar hidden via global shortcut');
         }
     }
+});
+
+// Context menu functionality
+ipcRenderer.on('context-menu-action', (event, data) => {
+    if (data.action === 'new-tab' && data.url) {
+        createNewTab(data.url, getPageTitle(data.url));
+    }
+});
+
+ipcRenderer.on('navigate-to-url', (event, url) => {
+    if (url) {
+        createNewTab(url, getPageTitle(url));
+    }
+});
+
+// Webview reload functionality
+ipcRenderer.on('reload-webview-response', () => {
+    const webview = document.getElementById('Browser');
+    if (webview) {
+        webview.reload();
+        console.log('Webview reloaded');
+    }
+});
+
+// Function to reload only the webview
+function reloadWebview() {
+    const webview = document.getElementById('Browser');
+    if (webview) {
+        webview.reload();
+        console.log('Webview reloaded manually');
+    }
+}
+
+// Function to go to home page
+function goToHome() {
+    const webview = document.getElementById('Browser');
+    if (webview) {
+        webview.loadURL('home.html');
+        updateCurrentTabUrl('home.html');
+        document.getElementById('searchbar').value = '';
+        console.log('Navigated to home');
+    }
+}
+
+// Session persistence functions
+function saveBrowserSession() {
+    const sessionData = {
+        tabs: tabs,
+        activeTabIndex: activeTabIndex,
+        settings: browserSettings,
+        timestamp: Date.now()
+    };
+    
+    if (window.electronAPI && window.electronAPI.saveBrowserState) {
+        window.electronAPI.saveBrowserState(sessionData);
+    } else {
+        localStorage.setItem('browserSession', JSON.stringify(sessionData));
+    }
+}
+
+function loadBrowserSession() {
+    if (window.electronAPI && window.electronAPI.loadBrowserState) {
+        window.electronAPI.loadBrowserState().then(result => {
+            if (result.success && result.data) {
+                restoreSession(result.data);
+            } else {
+                // Fallback to localStorage
+                loadFromLocalStorage();
+            }
+        });
+    } else {
+        loadFromLocalStorage();
+    }
+}
+
+function loadFromLocalStorage() {
+    try {
+        const sessionData = localStorage.getItem('browserSession');
+        if (sessionData) {
+            const parsedData = JSON.parse(sessionData);
+            restoreSession(parsedData);
+        }
+    } catch (error) {
+        console.log('Failed to load session from localStorage:', error);
+    }
+}
+
+function restoreSession(sessionData) {
+    if (sessionData.tabs && sessionData.tabs.length > 0) {
+        tabs = sessionData.tabs;
+        activeTabIndex = sessionData.activeTabIndex || 0;
+        tabCounter = Math.max(...tabs.map(tab => parseInt(tab.id.split('-')[1])));
+        
+        if (sessionData.settings) {
+            browserSettings = { ...browserSettings, ...sessionData.settings };
+            applyUserSettings();
+        }
+        
+        updateTabsUI();
+        loadTabContent(activeTabIndex);
+        console.log('Session restored with', tabs.length, 'tabs');
+    }
+}
+
+// Context menu setup for webview
+function setupWebviewContextMenu() {
+    const webview = document.getElementById('Browser');
+    if (webview) {
+        // Remove all existing event listeners
+        webview.removeEventListener('contextmenu', handleWebviewContextMenu);
+        webview.removeEventListener('context-menu', handleWebviewContextMenu);
+        
+        // Add context menu event listener for webview
+        webview.addEventListener('context-menu', (e) => {
+            e.preventDefault();
+            console.log('Context menu event detected:', e);
+            showSimpleContextMenu(e.x || e.clientX || 100, e.y || e.clientY || 100);
+        });
+        
+        // Add regular right-click listener as backup
+        webview.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            console.log('Regular contextmenu event:', e);
+            showSimpleContextMenu(e.clientX || 100, e.clientY || 100);
+        });
+        
+        // Add mouseup listener for right clicks as another fallback
+        webview.addEventListener('mouseup', function(e) {
+            if (e.button === 2) { // Right click
+                e.preventDefault();
+                console.log('Right click detected via mouseup');
+                showSimpleContextMenu(e.clientX, e.clientY);
+            }
+        });
+        
+        // Disable the default context menu
+        webview.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+}
+
+function handleWebviewContextMenu(e) {
+    e.preventDefault();
+    
+    // Create a simple HTML context menu
+    const existingMenu = document.getElementById('custom-context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+    
+    const menu = document.createElement('div');
+    menu.id = 'custom-context-menu';
+    menu.style.cssText = `
+        position: fixed;
+        z-index: 10000;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        box-shadow: var(--shadow-medium);
+        padding: 4px 0;
+        min-width: 180px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        color: var(--text-primary);
+        left: ${e.clientX}px;
+        top: ${e.clientY}px;
+        backdrop-filter: blur(10px);
+    `;
+    
+    const menuItems = [];
+    
+    // Get context info from the event
+    const params = e.params || {};
+    const linkURL = params.linkURL || '';
+    const srcURL = params.srcURL || '';
+    const selectionText = params.selectionText || '';
+    const isEditable = params.isEditable || false;
+    
+    // Add link-specific options
+    if (linkURL) {
+        menuItems.push({
+            label: 'Open Link in New Tab',
+            action: () => {
+                createNewTab(linkURL, getPageTitle(linkURL));
+            }
+        });
+        
+        menuItems.push({
+            label: 'Open Link in New Window',
+            action: () => {
+                // For now, open in new tab (can be enhanced later)
+                createNewTab(linkURL, getPageTitle(linkURL));
+            }
+        });
+        
+        menuItems.push({ type: 'separator' });
+    }
+    
+    // Add copy option if text is selected
+    if (selectionText) {
+        menuItems.push({
+            label: 'Copy',
+            action: () => {
+                const { clipboard } = require('electron');
+                clipboard.writeText(selectionText);
+            }
+        });
+    } else {
+        // Always show copy option
+        menuItems.push({
+            label: 'Copy',
+            action: () => {
+                const webview = document.getElementById('Browser');
+                if (webview) {
+                    webview.copy();
+                }
+            }
+        });
+    }
+    
+    // Add paste option
+    menuItems.push({
+        label: 'Paste',
+        action: () => {
+            const webview = document.getElementById('Browser');
+            if (webview) {
+                webview.paste();
+            }
+        }
+    });
+    
+    menuItems.push({ type: 'separator' });
+    
+    // Add inspect element
+    menuItems.push({
+        label: 'Inspect Element',
+        action: () => {
+            const webview = document.getElementById('Browser');
+            if (webview) {
+                webview.openDevTools();
+            }
+        }
+    });
+    
+    // Add save image option for images
+    if (srcURL) {
+        menuItems.push({
+            label: 'Save Image As',
+            action: () => {
+                // Create a temporary link to download the image
+                const link = document.createElement('a');
+                link.href = srcURL;
+                link.download = srcURL.split('/').pop() || 'image';
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+    }
+    
+    // Build the menu
+    menuItems.forEach(item => {
+        if (item.type === 'separator') {
+            const separator = document.createElement('div');
+            separator.style.cssText = 'height: 1px; background: var(--border-light); margin: 4px 8px;';
+            menu.appendChild(separator);
+        } else {
+            const menuItem = document.createElement('div');
+            menuItem.textContent = item.label;
+            menuItem.style.cssText = `
+                padding: 8px 16px;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+            `;
+            
+            menuItem.addEventListener('mouseenter', () => {
+                menuItem.style.backgroundColor = 'var(--bg-button-hover)';
+            });
+            
+            menuItem.addEventListener('mouseleave', () => {
+                menuItem.style.backgroundColor = 'transparent';
+            });
+            
+            menuItem.addEventListener('click', () => {
+                item.action();
+                menu.remove();
+            });
+            
+            menu.appendChild(menuItem);
+        }
+    });
+    
+    document.body.appendChild(menu);
+    
+    // Position the menu to stay within viewport
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+        menu.style.left = (e.clientX - rect.width) + 'px';
+    }
+    if (rect.bottom > window.innerHeight) {
+        menu.style.top = (e.clientY - rect.height) + 'px';
+    }
+    
+    // Remove menu on click elsewhere
+    const removeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+            menu.remove();
+            document.removeEventListener('click', removeMenu);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    
+    const escapeHandler = (event) => {
+        if (event.key === 'Escape') {
+            menu.remove();
+            document.removeEventListener('click', removeMenu);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    
+    // Add event listeners after a short delay to prevent immediate closure
+    setTimeout(() => {
+        document.addEventListener('click', removeMenu);
+        document.addEventListener('keydown', escapeHandler);
+    }, 10);
+}
+
+// Simple context menu that always appears on right-click
+function showSimpleContextMenu(x, y) {
+    // Remove existing menu
+    const existingMenu = document.getElementById('simple-context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+    
+    const menu = document.createElement('div');
+    menu.id = 'simple-context-menu';
+    menu.style.cssText = `
+        position: fixed;
+        z-index: 10000;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        box-shadow: var(--shadow-medium);
+        padding: 4px 0;
+        min-width: 180px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        color: var(--text-primary);
+        left: ${x}px;
+        top: ${y}px;
+        backdrop-filter: blur(10px);
+    `;
+    
+    const menuItems = [
+        {
+            label: 'Copy',
+            action: () => {
+                const webview = document.getElementById('Browser');
+                if (webview) {
+                    webview.copy();
+                }
+            }
+        },
+        {
+            label: 'Paste',
+            action: () => {
+                const webview = document.getElementById('Browser');
+                if (webview) {
+                    webview.paste();
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Reload Page',
+            action: () => {
+                reloadWebview();
+            }
+        },
+        {
+            label: 'Go to Home',
+            action: () => {
+                goToHome();
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Inspect Element',
+            action: () => {
+                const webview = document.getElementById('Browser');
+                if (webview) {
+                    webview.openDevTools();
+                }
+            }
+        }
+    ];
+    
+    // Build the menu
+    menuItems.forEach(item => {
+        if (item.type === 'separator') {
+            const separator = document.createElement('div');
+            separator.style.cssText = 'height: 1px; background: var(--border-light); margin: 4px 8px;';
+            menu.appendChild(separator);
+        } else {
+            const menuItem = document.createElement('div');
+            menuItem.textContent = item.label;
+            menuItem.style.cssText = `
+                padding: 8px 16px;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+            `;
+            
+            menuItem.addEventListener('mouseenter', () => {
+                menuItem.style.backgroundColor = 'var(--bg-button-hover)';
+            });
+            
+            menuItem.addEventListener('mouseleave', () => {
+                menuItem.style.backgroundColor = 'transparent';
+            });
+            
+            menuItem.addEventListener('click', () => {
+                item.action();
+                menu.remove();
+            });
+            
+            menu.appendChild(menuItem);
+        }
+    });
+    
+    document.body.appendChild(menu);
+    
+    // Position the menu to stay within viewport
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+        menu.style.left = (x - rect.width) + 'px';
+    }
+    if (rect.bottom > window.innerHeight) {
+        menu.style.top = (y - rect.height) + 'px';
+    }
+    
+    // Remove menu on click elsewhere or escape
+    const removeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+            menu.remove();
+            document.removeEventListener('click', removeMenu);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    
+    const escapeHandler = (event) => {
+        if (event.key === 'Escape') {
+            menu.remove();
+            document.removeEventListener('click', removeMenu);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    
+    // Add event listeners after a short delay
+    setTimeout(() => {
+        document.addEventListener('click', removeMenu);
+        document.addEventListener('keydown', escapeHandler);
+    }, 10);
+}
+
+// Auto-save session periodically
+setInterval(saveBrowserSession, 30000); // Save every 30 seconds
+
+// Advanced context menu that detects links and handles different contexts
+function showAdvancedContextMenu(x, y, webview) {
+    // Remove existing menu
+    const existingMenu = document.getElementById('advanced-context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+    
+    const menu = document.createElement('div');
+    menu.id = 'advanced-context-menu';
+    menu.style.cssText = `
+        position: fixed;
+        z-index: 10000;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        box-shadow: var(--shadow-medium);
+        padding: 4px 0;
+        min-width: 200px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        color: var(--text-primary);
+        left: ${x}px;
+        top: ${y}px;
+        backdrop-filter: blur(10px);
+    `;
+    
+    // Get the webview's position to check if we can get context info
+    const webviewRect = webview.getBoundingClientRect();
+    const relativeX = x - webviewRect.left;
+    const relativeY = y - webviewRect.top;
+    
+    // Try to get selection text or other context from the webview
+    let hasSelection = false;
+    let currentUrl = '';
+    
+    try {
+        // Get current URL
+        currentUrl = webview.getURL() || '';
+        
+        // Check if there's selected text (simplified detection)
+        webview.executeJavaScript(`
+            (function() {
+                const selection = window.getSelection();
+                const selectedText = selection.toString().trim();
+                const targetElement = document.elementFromPoint(${relativeX}, ${relativeY});
+                let linkUrl = '';
+                let imageUrl = '';
+                
+                // Check if clicked element or its parent is a link
+                let element = targetElement;
+                while (element && element !== document.body) {
+                    if (element.tagName === 'A' && element.href) {
+                        linkUrl = element.href;
+                        break;
+                    }
+                    element = element.parentElement;
+                }
+                
+                // Check if clicked element is an image
+                if (targetElement && targetElement.tagName === 'IMG' && targetElement.src) {
+                    imageUrl = targetElement.src;
+                }
+                
+                return {
+                    selectedText: selectedText,
+                    linkUrl: linkUrl,
+                    imageUrl: imageUrl,
+                    hasSelection: selectedText.length > 0
+                };
+            })()
+        `).then(result => {
+            // Update menu with context info
+            updateContextMenuWithInfo(menu, result, webview);
+        }).catch(() => {
+            // Fallback: show basic menu
+            buildBasicContextMenu(menu, webview);
+        });
+    } catch (error) {
+        console.log('Error getting webview context:', error);
+        buildBasicContextMenu(menu, webview);
+    }
+    
+    // Initially show basic menu, will be updated if we get context info
+    buildBasicContextMenu(menu, webview);
+    
+    document.body.appendChild(menu);
+    
+    // Position the menu to stay within viewport
+    const rect = menu.getBoundingClientRect();
+    let finalX = x;
+    let finalY = y;
+    
+    if (rect.right > window.innerWidth) {
+        finalX = x - rect.width;
+    }
+    if (rect.bottom > window.innerHeight) {
+        finalY = y - rect.height;
+    }
+    
+    menu.style.left = finalX + 'px';
+    menu.style.top = finalY + 'px';
+    
+    // Remove menu on click elsewhere or escape
+    const removeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+            menu.remove();
+            document.removeEventListener('click', removeMenu);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    
+    const escapeHandler = (event) => {
+        if (event.key === 'Escape') {
+            menu.remove();
+            document.removeEventListener('click', removeMenu);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    
+    // Add event listeners after a short delay
+    setTimeout(() => {
+        document.addEventListener('click', removeMenu);
+        document.addEventListener('keydown', escapeHandler);
+    }, 10);
+}
+
+function updateContextMenuWithInfo(menu, contextInfo, webview) {
+    // Clear existing menu items
+    while (menu.firstChild) {
+        menu.removeChild(menu.firstChild);
+    }
+    
+    const menuItems = [];
+    
+    // Add link-specific options if there's a link
+    if (contextInfo.linkUrl) {
+        menuItems.push({
+            label: 'Open Link in New Tab',
+            action: () => {
+                createNewTab(contextInfo.linkUrl, getPageTitle(contextInfo.linkUrl));
+            }
+        });
+        
+        menuItems.push({
+            label: 'Open Link in New Window',
+            action: () => {
+                if (window.electronAPI && window.electronAPI.openNewWindow) {
+                    window.electronAPI.openNewWindow(contextInfo.linkUrl);
+                } else {
+                    // Fallback: open in new tab
+                    createNewTab(contextInfo.linkUrl, getPageTitle(contextInfo.linkUrl));
+                }
+            }
+        });
+        
+        menuItems.push({
+            label: 'Copy Link Address',
+            action: () => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(contextInfo.linkUrl);
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = contextInfo.linkUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+            }
+        });
+        
+        menuItems.push({ type: 'separator' });
+    }
+    
+    // Add copy option based on selection
+    if (contextInfo.hasSelection && contextInfo.selectedText) {
+        menuItems.push({
+            label: 'Copy',
+            action: () => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(contextInfo.selectedText);
+                } else {
+                    webview.copy();
+                }
+            }
+        });
+    } else {
+        menuItems.push({
+            label: 'Copy',
+            action: () => {
+                webview.copy();
+            }
+        });
+    }
+    
+    // Add paste option
+    menuItems.push({
+        label: 'Paste',
+        action: () => {
+            webview.paste();
+        }
+    });
+    
+    menuItems.push({ type: 'separator' });
+    
+    // Add image-specific options if there's an image
+    if (contextInfo.imageUrl) {
+        menuItems.push({
+            label: 'Save Image As',
+            action: () => {
+                // Create a temporary link to download the image
+                const link = document.createElement('a');
+                link.href = contextInfo.imageUrl;
+                link.download = contextInfo.imageUrl.split('/').pop() || 'image';
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+        
+        menuItems.push({
+            label: 'Copy Image Address',
+            action: () => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(contextInfo.imageUrl);
+                } else {
+                    // Fallback
+                    const textArea = document.createElement('textarea');
+                    textArea.value = contextInfo.imageUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+            }
+        });
+        
+        menuItems.push({ type: 'separator' });
+    }
+    
+    // Add common options
+    menuItems.push({
+        label: 'Reload Page',
+        action: () => {
+            reloadWebview();
+        }
+    });
+    
+    menuItems.push({
+        label: 'Go to Home',
+        action: () => {
+            goToHome();
+        }
+    });
+    
+    menuItems.push({ type: 'separator' });
+    
+    menuItems.push({
+        label: 'Inspect Element',
+        action: () => {
+            webview.openDevTools();
+        }
+    });
+    
+    // Build the menu
+    buildMenuItems(menu, menuItems);
+}
+
+function buildBasicContextMenu(menu, webview) {
+    // Clear existing menu items
+    while (menu.firstChild) {
+        menu.removeChild(menu.firstChild);
+    }
+    
+    const menuItems = [
+        {
+            label: 'Copy',
+            action: () => {
+                webview.copy();
+            }
+        },
+        {
+            label: 'Paste',
+            action: () => {
+                webview.paste();
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Reload Page',
+            action: () => {
+                reloadWebview();
+            }
+        },
+        {
+            label: 'Go to Home',
+            action: () => {
+                goToHome();
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Inspect Element',
+            action: () => {
+                webview.openDevTools();
+            }
+        }
+    ];
+    
+    buildMenuItems(menu, menuItems);
+}
+
+function buildMenuItems(menu, menuItems) {
+    menuItems.forEach(item => {
+        if (item.type === 'separator') {
+            const separator = document.createElement('div');
+            separator.style.cssText = 'height: 1px; background: var(--border-light); margin: 4px 8px;';
+            menu.appendChild(separator);
+        } else {
+            const menuItem = document.createElement('div');
+            menuItem.textContent = item.label;
+            menuItem.style.cssText = `
+                padding: 8px 16px;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                user-select: none;
+            `;
+            
+            menuItem.addEventListener('mouseenter', () => {
+                menuItem.style.backgroundColor = 'var(--bg-button-hover)';
+            });
+            
+            menuItem.addEventListener('mouseleave', () => {
+                menuItem.style.backgroundColor = 'transparent';
+            });
+            
+            menuItem.addEventListener('click', () => {
+                item.action();
+                menu.remove();
+            });
+            
+            menu.appendChild(menuItem);
+        }
+    });
+}
+
+// Working context menu with proper clipboard functionality
+function showWorkingContextMenu(x, y, webview) {
+    console.log('Creating working context menu at:', x, y);
+    
+    // Remove any existing context menus
+    const existingMenus = document.querySelectorAll('[id*="context-menu"]');
+    existingMenus.forEach(menu => menu.remove());
+    
+    const menu = document.createElement('div');
+    menu.id = 'working-context-menu';
+    menu.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y}px;
+        z-index: 999999;
+        background: #ffffff;
+        border: 1px solid #cccccc;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        padding: 4px 0;
+        min-width: 200px;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 13px;
+        color: #333333;
+        user-select: none;
+    `;
+    
+    // Check if we're in dark mode and adjust colors
+    if (document.body.classList.contains('dark-theme')) {
+        menu.style.background = '#2d2d2d';
+        menu.style.color = '#ffffff';
+        menu.style.borderColor = '#555555';
+    }
+    
+    // Get context information from webview
+    const webviewRect = webview.getBoundingClientRect();
+    const relativeX = x - webviewRect.left;
+    const relativeY = y - webviewRect.top;
+    
+    // First, create basic menu items
+    const menuItems = [
+        {
+            label: 'Copy',
+            action: async () => {
+                try {
+                    // Try to get selected text from webview
+                    const selectedText = await webview.executeJavaScript('window.getSelection().toString()');
+                    if (selectedText && selectedText.trim()) {
+const { clipboard } = require('electron');
+                        clipboard.writeText(selectedText);
+                        console.log('Copied selected text:', selectedText);
+                    } else {
+                        // Use webview's built-in copy if no selection
+                        webview.copy();
+                        console.log('Used webview copy');
+                    }
+                } catch (error) {
+                    console.log('Copy error:', error);
+                    // Fallback to webview copy
+                    webview.copy();
+                }
+            }
+        },
+        {
+            label: 'Paste',
+            action: async () => {
+                try {
+                    const { clipboard } = require('electron');
+                    const clipboardText = clipboard.readText();
+                    if (clipboardText) {
+                        // Try inserting text at current cursor position in webview
+                        await webview.executeJavaScript(`
+                            document.execCommand('insertText', false, ${JSON.stringify(clipboardText)})
+                        `);
+                        console.log('Pasted text:', clipboardText);
+                    }
+                } catch (error) {
+                    console.log('Paste error:', error);
+                    // Fallback to webview paste
+                    webview.paste();
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Reload Page',
+            action: () => {
+                reloadWebview();
+            }
+        },
+        {
+            label: 'Go to Home',
+            action: () => {
+                goToHome();
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Inspect Element',
+            action: () => {
+                webview.openDevTools();
+            }
+        }
+    ];
+    
+    // Try to get more context (links, images) asynchronously
+    webview.executeJavaScript(`
+        (function() {
+            try {
+                const targetElement = document.elementFromPoint(${relativeX}, ${relativeY});
+                let linkUrl = '';
+                let imageUrl = '';
+                let selectedText = window.getSelection().toString().trim();
+                
+                // Check for link
+                let element = targetElement;
+                while (element && element !== document.body) {
+                    if (element.tagName === 'A' && element.href) {
+                        linkUrl = element.href;
+                        break;
+                    }
+                    element = element.parentElement;
+                }
+                
+                // Check for image
+                if (targetElement && targetElement.tagName === 'IMG' && targetElement.src) {
+                    imageUrl = targetElement.src;
+                }
+                
+                return {
+                    linkUrl: linkUrl,
+                    imageUrl: imageUrl,
+                    selectedText: selectedText,
+                    hasSelection: selectedText.length > 0
+                };
+            } catch (e) {
+                console.error('Error getting context:', e);
+                return { linkUrl: '', imageUrl: '', selectedText: '', hasSelection: false };
+            }
+        })()
+    `).then(contextInfo => {
+        // Update menu with context-specific options
+        updateMenuWithContext(menu, contextInfo, menuItems, webview);
+    }).catch(() => {
+        // Just build the basic menu
+        buildMenuFromItems(menu, menuItems);
+    });
+    
+    // Build basic menu initially
+    buildMenuFromItems(menu, menuItems);
+    
+    document.body.appendChild(menu);
+    
+    // Position menu properly within viewport
+    const rect = menu.getBoundingClientRect();
+    let adjustedX = x;
+    let adjustedY = y;
+    
+    if (rect.right > window.innerWidth) {
+        adjustedX = x - rect.width;
+    }
+    if (rect.bottom > window.innerHeight) {
+        adjustedY = y - rect.height;
+    }
+    
+    menu.style.left = adjustedX + 'px';
+    menu.style.top = adjustedY + 'px';
+    
+    // Add click-outside listener to close menu
+    const closeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    
+    const handleEscape = (event) => {
+        if (event.key === 'Escape') {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    
+    // Add listeners after a brief delay to prevent immediate closure
+    setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+        document.addEventListener('keydown', handleEscape);
+    }, 50);
+}
+
+function updateMenuWithContext(menu, contextInfo, basicItems, webview) {
+    // Clear existing items
+    while (menu.firstChild) {
+        menu.removeChild(menu.firstChild);
+    }
+    
+    const menuItems = [];
+    
+    // Add link-specific options
+    if (contextInfo.linkUrl) {
+        menuItems.push({
+            label: 'Open Link in New Tab',
+            action: () => {
+                createNewTab(contextInfo.linkUrl, getPageTitle(contextInfo.linkUrl));
+            }
+        });
+        
+        menuItems.push({
+            label: 'Open Link in New Window',
+            action: () => {
+                if (window.electronAPI && window.electronAPI.openNewWindow) {
+                    window.electronAPI.openNewWindow(contextInfo.linkUrl);
+                } else {
+                    createNewTab(contextInfo.linkUrl, getPageTitle(contextInfo.linkUrl));
+                }
+            }
+        });
+        
+        menuItems.push({
+            label: 'Copy Link Address',
+            action: async () => {
+                try {
+                    await navigator.clipboard.writeText(contextInfo.linkUrl);
+                    console.log('Copied link:', contextInfo.linkUrl);
+                } catch (error) {
+                    console.log('Failed to copy link:', error);
+                }
+            }
+        });
+        
+        menuItems.push({ type: 'separator' });
+    }
+    
+    // Add enhanced copy option
+    if (contextInfo.hasSelection && contextInfo.selectedText) {
+        menuItems.push({
+            label: `Copy "${contextInfo.selectedText.substring(0, 30)}${contextInfo.selectedText.length > 30 ? '...' : ''}"`,
+            action: async () => {
+                try {
+                    await navigator.clipboard.writeText(contextInfo.selectedText);
+                    console.log('Copied selected text:', contextInfo.selectedText);
+                } catch (error) {
+                    console.log('Failed to copy selection:', error);
+                }
+            }
+        });
+    } else {
+        menuItems.push(basicItems[0]); // Regular copy
+    }
+    
+    // Add paste
+    menuItems.push(basicItems[1]);
+    
+    // Add image options
+    if (contextInfo.imageUrl) {
+        menuItems.push({ type: 'separator' });
+        menuItems.push({
+            label: 'Save Image As',
+            action: () => {
+                const link = document.createElement('a');
+                link.href = contextInfo.imageUrl;
+                link.download = contextInfo.imageUrl.split('/').pop() || 'image';
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+        
+        menuItems.push({
+            label: 'Copy Image Address',
+            action: async () => {
+                try {
+                    await navigator.clipboard.writeText(contextInfo.imageUrl);
+                    console.log('Copied image URL:', contextInfo.imageUrl);
+                } catch (error) {
+                    console.log('Failed to copy image URL:', error);
+                }
+            }
+        });
+    }
+    
+    // Add remaining basic items
+    menuItems.push({ type: 'separator' });
+    menuItems.push(basicItems[3]); // Reload
+    menuItems.push(basicItems[4]); // Home
+    menuItems.push({ type: 'separator' });
+    menuItems.push(basicItems[6]); // Inspect
+    
+    buildMenuFromItems(menu, menuItems);
+}
+
+function buildMenuFromItems(menu, items) {
+    items.forEach(item => {
+        if (item.type === 'separator') {
+            const separator = document.createElement('div');
+            separator.style.cssText = `
+                height: 1px;
+                background: ${document.body.classList.contains('dark-theme') ? '#555555' : '#e0e0e0'};
+                margin: 4px 8px;
+            `;
+            menu.appendChild(separator);
+        } else {
+            const menuItem = document.createElement('div');
+            menuItem.textContent = item.label;
+            menuItem.style.cssText = `
+                padding: 8px 16px;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                user-select: none;
+            `;
+            
+            const isDark = document.body.classList.contains('dark-theme');
+            
+            menuItem.addEventListener('mouseenter', () => {
+                menuItem.style.backgroundColor = isDark ? '#444444' : '#f0f0f0';
+            });
+            
+            menuItem.addEventListener('mouseleave', () => {
+                menuItem.style.backgroundColor = 'transparent';
+            });
+            
+            menuItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                item.action();
+                menu.remove();
+            });
+            
+            menu.appendChild(menuItem);
+        }
+    });
+}
+
+// Save session before closing
+window.addEventListener('beforeunload', () => {
+    saveBrowserSession();
 });
 
 
